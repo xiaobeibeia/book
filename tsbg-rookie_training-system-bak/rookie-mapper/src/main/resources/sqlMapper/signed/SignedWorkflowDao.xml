@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tsbg.mis.dao.signed.SignedWorkflowDao">
+
+    <resultMap type="com.tsbg.mis.signed.model.SignedWorkflow" id="SignedWorkflowMap">
+        <result property="signWorkflowId" column="sign_workflow_id" jdbcType="INTEGER"/>
+        <result property="signTypeId" column="sign_type_id" jdbcType="INTEGER"/>
+        <result property="businessId" column="business_id" jdbcType="INTEGER"/>
+        <result property="signSequence" column="sign_sequence" jdbcType="INTEGER"/>
+        <result property="signNodeId" column="sign_node_id" jdbcType="INTEGER"/>
+        <result property="nodeName" column="node_name" jdbcType="VARCHAR"/>
+        <result property="roleId" column="role_id" jdbcType="INTEGER"/>
+        <result property="managerCode" column="manager_code" jdbcType="VARCHAR"/>
+        <result property="managerName" column="manager_name" jdbcType="VARCHAR"/>
+        <result property="managerMailAddress" column="manager_mail_address" jdbcType="VARCHAR"/>
+        <result property="projId" column="proj_id" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="SignedWorkflowMap">
+        select
+          sign_workflow_id, sign_type_id, business_id, sign_sequence, sign_node_id, node_name, role_id, manager_code, manager_name, manager_mail_address, proj_id, status
+        from signed_module_db.signed_workflow
+        where sign_workflow_id = #{signWorkflowId}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="SignedWorkflowMap">
+        select
+          sign_workflow_id, sign_type_id, business_id, sign_sequence, sign_node_id, node_name, role_id, manager_code, manager_name, manager_mail_address, proj_id, status
+        from signed_module_db.signed_workflow
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="SignedWorkflowMap">
+        select
+          sign_workflow_id, sign_type_id, business_id, sign_sequence, sign_node_id, node_name, role_id, manager_code, manager_name, manager_mail_address, proj_id, status
+        from signed_module_db.signed_workflow
+        <where>
+            <if test="signWorkflowId != null">
+                and sign_workflow_id = #{signWorkflowId}
+            </if>
+            <if test="signTypeId != null">
+                and sign_type_id = #{signTypeId}
+            </if>
+            <if test="businessId != null">
+                and business_id = #{businessId}
+            </if>
+            <if test="signSequence != null">
+                and sign_sequence = #{signSequence}
+            </if>
+            <if test="signNodeId != null">
+                and sign_node_id = #{signNodeId}
+            </if>
+            <if test="nodeName != null and nodeName != ''">
+                and node_name = #{nodeName}
+            </if>
+            <if test="managerCode != null and managerCode != ''">
+                and manager_code = #{managerCode}
+            </if>
+            <if test="managerName != null and managerName != ''">
+                and manager_name = #{managerName}
+            </if>
+            <if test="managerMailAddress != null and managerMailAddress != ''">
+                and manager_mail_address = #{managerMailAddress}
+            </if>
+            <if test="projId != null">
+                and proj_id = #{projId}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!--通过 businessIds 查询所有节点信息-->
+    <select id="queryAllByBusinessIds" resultType="com.tsbg.mis.signed.model.SignedWorkflow">
+        SELECT
+            a.`sign_workflow_id` AS signWorkflowId,
+            a.`sign_type_id` AS signTypeId,
+            a.`business_id` AS businessId,
+            a.`sign_sequence` AS signSequence,
+            a.`sign_node_id` AS signNodeId,
+            a.`node_name` AS nodeName,
+            a.`role_id` AS roleId,
+            a.`manager_code` AS managerCode,
+            a.`manager_name` AS managerName,
+            a.`manager_mail_address` AS managerMailAddress,
+            a.`proj_id` AS projId,
+            a.`status` AS status
+        FROM
+            signed_module_db.`signed_workflow` AS a
+        WHERE
+            a.`status` = 1
+            AND a.`proj_id` = 10
+            AND a.`business_id` IN
+            <foreach collection="list" index="index" item="businessId" open="(" separator="," close=")">
+                #{businessId}
+            </foreach>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="signWorkflowId" useGeneratedKeys="true">
+        insert into signed_module_db.signed_workflow(sign_type_id, business_id, sign_sequence, sign_node_id, node_name, role_id, manager_code, manager_name, manager_mail_address, proj_id, status)
+        values (#{signTypeId}, #{businessId}, #{signSequence}, #{signNodeId}, #{nodeName}, #{roleId}, #{managerCode}, #{managerName}, #{managerMailAddress}, #{projId}, #{status})
+    </insert>
+
+    <!--根据business_id逻辑删除-->
+    <update id="deleteByBusinessId">
+        update signed_module_db.signed_workflow
+        set status = 0
+        where business_id = #{businessId}
+    </update>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update signed_module_db.signed_workflow
+        <set>
+            <if test="signSequence != null">
+                sign_sequence = #{signSequence},
+            </if>
+            <if test="nodeName != null and nodeName != ''">
+                node_name = #{nodeName},
+            </if>
+            <if test="managerCode != null and managerCode != ''">
+                manager_code = #{managerCode},
+            </if>
+            <if test="managerName != null and managerName != ''">
+                manager_name = #{managerName},
+            </if>
+            <if test="managerMailAddress != null and managerMailAddress != ''">
+                manager_mail_address = #{managerMailAddress},
+            </if>
+            <if test="projId != null">
+                proj_id = #{projId},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+        </set>
+        where sign_workflow_id = #{signWorkflowId}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from signed_module_db.signed_workflow where sign_workflow_id = #{signWorkflowId}
+    </delete>
+
+</mapper>

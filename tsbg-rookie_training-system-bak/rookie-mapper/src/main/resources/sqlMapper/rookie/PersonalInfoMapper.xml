@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tsbg.mis.dao.rookie.PersonalInfoDao" >
+  <select id="queryOrganizationInfo" parameterType="String" resultType="com.tsbg.mis.rookie.model.ClassStudentInfo">
+    SELECT cs.staff_code AS staffCode,cs.staff_name AS staffName,cs.staff_simple_name AS staffSimpleName,
+    cs.BG_name AS bgName,cs.BU_name AS buName,cs.unit_name AS unitName,cs.unit_manager_code AS unitManagerCode,cs.unit_manager_name AS unitManagerName,
+    cs.depart_name AS departName,cs.depart_manager_code AS departManagerCode,cs.depart_manager_name AS departManagerName,cs.class_name AS className,
+    cs.class_manager_code AS unitManagerCode,cs.class_manager_name AS unitManagerName
+    FROM rookie_training_system.class_student_info AS cs WHERE cs.staff_code =#{staffCode} AND cs.status=1
+  </select>
+
+  <update id="UpdateUserPersonalInfo" parameterType="com.tsbg.mis.rookie.bag.UserPersonalInfoPackage">
+    update user_database.user_info
+    <set >
+      <if test="phoneNumber != null">
+        phone_number = #{phoneNumber},
+      </if>
+      <if test="emailAddress != null and emailAddress != ''" >
+        email_address = #{emailAddress},
+      </if>
+    </set>
+    where staff_code = #{staffCode};
+  </update>
+
+  <update id="UpdatePersonalInfo" parameterType="com.tsbg.mis.rookie.bag.UserPersonalInfoPackage">
+    update master_database.staff_info
+    <set >
+      <if test="phoneNum != null">
+        phone_num = #{phoneNum},
+      </if>
+      <if test="email != null and email != ''" >
+        email = #{email},
+      </if>
+    </set>
+    where staff_code = #{staffCode};
+  </update>
+
+  <update id="UpdateFileInfo" parameterType="com.tsbg.mis.rookie.bag.UserPersonalInfoPackage">
+    update rookie_training_system.file_info
+    <set >
+      <if test="fileName != null">
+        file_name = #{fileName},
+      </if>
+      <if test="filePath != null and filePath != ''" >
+        file_path = #{filePath},
+      </if>
+      <if test="viewPath != null and viewPath != ''" >
+        view_path = #{viewPath},
+      </if>
+      <if test="projId != null" >
+        proj_id = #{projId},
+      </if>
+      <if test="connectTableName != null and connectTableName != ''" >
+        connect_table_name = #{connectTableName},
+      </if>
+      <if test="connectFieldsName != null and connectFieldsName != ''" >
+        connect_fields_name = #{connectFieldsName},
+      </if>
+    </set>
+    where connect_fields_value = #{connectFieldsValue};
+  </update>
+
+  <select id="queryUserPersonalInfo" parameterType="String" resultType="com.tsbg.mis.rookie.bag.UserPersonalInfoPackage">
+    SELECT f.file_id AS fileId,f.connect_fields_value AS connectFieldsValue
+    FROM rookie_training_system.file_info AS f WHERE f.connect_fields_value = #{connectFieldsValue} AND f.status =1
+  </select>
+
+  <insert id="insertUserPersonalInfo" parameterType="com.tsbg.mis.rookie.bag.UserPersonalInfoPackage">
+       INSERT INTO rookie_training_system.file_info(file_name,file_path,view_path,proj_id,connect_table_name,connect_fields_name,connect_fields_value,update_user_code,last_update_user,update_date)
+       VALUES (#{fileName},#{filePath},#{viewPath},#{projId},#{connectTableName},#{connectFieldsName},#{connectFieldsValue},#{updateUserCode},#{lastUpdateUser},now())
+  </insert>
+
+  <select id="queryPersonalPortraitPath" parameterType="com.tsbg.mis.rookie.bag.UserPersonalInfoPackage" resultType="com.tsbg.mis.rookie.bag.UserPersonalInfoPackage">
+    SELECT f.file_id AS fileId,f.view_path AS viewPath,f.file_path AS filePath FROM rookie_training_system.file_info AS f WHERE f.connect_table_name = #{connectTableName} AND
+    f.connect_fields_name = #{connectFieldsName} AND f.connect_fields_value = #{connectFieldsValue} AND f.status =1
+  </select>
+
+  <select id="selectStaffInfoByCode" parameterType="String" resultType="com.tsbg.mis.rookie.bag.UserPersonalInfoPackage">
+      SELECT u.staff_code AS staffCode,u.user_name AS userName,s.organization_name AS organizationName,u.email_address AS emailAddress,
+      u.phone_number AS phoneNumber FROM user_database.user_info AS u LEFT JOIN `master_database`.`staff_info` AS s
+      ON u.`staff_code`=s.`staff_code` WHERE u.staff_code =#{staffCode} AND u.`status` =1
+  </select>
+
+</mapper>

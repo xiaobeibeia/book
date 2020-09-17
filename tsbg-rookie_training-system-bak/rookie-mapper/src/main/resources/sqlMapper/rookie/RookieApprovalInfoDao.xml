@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tsbg.mis.dao.rookie.RookieApprovalInfoDao">
+
+    <resultMap type="com.tsbg.mis.rookie.model.RookieApprovalInfo" id="RookieApprovalInfoMap">
+        <result property="rookieApprovalId" column="rookie_approval_id" jdbcType="INTEGER"/>
+        <result property="signedDate" column="signed_date" jdbcType="TIMESTAMP"/>
+        <result property="businessId" column="business_id" jdbcType="INTEGER"/>
+        <result property="nodeId" column="node_id" jdbcType="INTEGER"/>
+        <result property="nodeName" column="node_name" jdbcType="VARCHAR"/>
+        <result property="approveStaffCode" column="approve_staff_code" jdbcType="VARCHAR"/>
+        <result property="approveStaffName" column="approve_staff_name" jdbcType="VARCHAR"/>
+        <result property="approveStaffMail" column="approve_staff_mail" jdbcType="VARCHAR"/>
+        <result property="approveSequence" column="approve_sequence" jdbcType="INTEGER"/>
+        <result property="approveOpinion" column="approve_opinion" jdbcType="VARCHAR"/>
+        <result property="fulfillmentOfSchedule" column="fulfillment_of_schedule" jdbcType="VARCHAR"/>
+        <result property="targetComment" column="target_comment" jdbcType="VARCHAR"/>
+        <result property="levelType" column="level_type" jdbcType="INTEGER"/>
+        <result property="grade" column="grade" jdbcType="VARCHAR"/>
+        <result property="isPass" column="is_pass" jdbcType="INTEGER"/>
+        <result property="projId" column="proj_id" jdbcType="INTEGER"/>
+        <result property="investTableName" column="invest_table_name" jdbcType="VARCHAR"/>
+        <result property="investFieldName" column="invest_field_name" jdbcType="VARCHAR"/>
+        <result property="investFieldValue" column="invest_field_value" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="RookieApprovalInfoMap">
+        select
+          rookie_approval_id, signed_date, business_id, node_id, node_name, approve_staff_code, approve_staff_name, approve_staff_mail, approve_sequence, approve_opinion, fulfillment_of_schedule, target_comment, grade, is_pass, proj_id, invest_table_name, invest_field_name, invest_field_value, status
+        from rookie_training_system.rookie_approval_info
+        where rookie_approval_id = #{rookieApprovalId}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="RookieApprovalInfoMap">
+        select
+          rookie_approval_id, signed_date, business_id, node_id, node_name, approve_staff_code, approve_staff_name, approve_staff_mail, approve_sequence, approve_opinion, fulfillment_of_schedule, target_comment, grade, is_pass, proj_id, invest_table_name, invest_field_name, invest_field_value, status
+        from rookie_training_system.rookie_approval_info
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="RookieApprovalInfoMap">
+        select
+          rookie_approval_id, signed_date, business_id, node_id, node_name, approve_staff_code, approve_staff_name, approve_staff_mail, approve_sequence, approve_opinion, fulfillment_of_schedule, target_comment, level_type, grade, is_pass, proj_id, invest_table_name, invest_field_name, invest_field_value, status
+        from rookie_training_system.rookie_approval_info
+        <where>
+            <if test="rookieApprovalId != null">
+                and rookie_approval_id = #{rookieApprovalId}
+            </if>
+            <if test="signedDate != null">
+                and signed_date = #{signedDate}
+            </if>
+            <if test="businessId != null">
+                and business_id = #{businessId}
+            </if>
+            <if test="nodeId != null">
+                and node_id = #{nodeId}
+            </if>
+            <if test="nodeName != null and nodeName != ''">
+                and node_name = #{nodeName}
+            </if>
+            <if test="approveStaffCode != null and approveStaffCode != ''">
+                and approve_staff_code = #{approveStaffCode}
+            </if>
+            <if test="approveStaffName != null and approveStaffName != ''">
+                and approve_staff_name = #{approveStaffName}
+            </if>
+            <if test="approveStaffMail != null and approveStaffMail != ''">
+                and approve_staff_mail = #{approveStaffMail}
+            </if>
+            <if test="approveSequence != null">
+                and approve_sequence = #{approveSequence}
+            </if>
+            <if test="approveOpinion != null and approveOpinion != ''">
+                and approve_opinion = #{approveOpinion}
+            </if>
+            <if test="fulfillmentOfSchedule != null and fulfillmentOfSchedule != ''">
+                and fulfillment_of_schedule = #{fulfillmentOfSchedule}
+            </if>
+            <if test="targetComment != null and targetComment != ''">
+                and target_comment = #{targetComment}
+            </if>
+            <if test="grade != null and grade != ''">
+                and grade = #{grade}
+            </if>
+            <if test="isPass != null">
+                and is_pass = #{isPass}
+            </if>
+            <if test="projId != null">
+                and proj_id = #{projId}
+            </if>
+            <if test="investTableName != null and investTableName != ''">
+                and invest_table_name = #{investTableName}
+            </if>
+            <if test="investFieldName != null and investFieldName != ''">
+                and invest_field_name = #{investFieldName}
+            </if>
+            <if test="investFieldValue != null and investFieldValue != ''">
+                and invest_field_value = #{investFieldValue}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!--查询主管所有的签核项目(待签核放前面，已签核的按照时间降序排列)-->
+    <select id="queryAllInfoVo" resultType="com.tsbg.mis.rookie.vo.RookieApprovalInfoVo">
+        SELECT
+            a.`rookie_approval_id` AS rookieApprovalId,
+            a.`signed_date` AS signedDate,
+            a.`business_id` AS businessId,
+            a.`node_id` AS nodeId,
+            a.`node_name` AS nodeName,
+            a.`approve_staff_code` AS approveStaffCode,
+            a.`approve_staff_name` AS approveStaffName,
+            a.`approve_staff_mail` AS approveStaffMail,
+            a.`approve_sequence` AS approveSequence,
+            a.`approve_opinion` AS approveOpinion,
+            a.`grade` AS grade,
+            a.`is_pass` AS isPass,
+            a.`proj_id` AS projId,
+            a.`invest_table_name` AS investTableName,
+            a.`invest_field_name` AS investFieldName,
+            a.`invest_field_value` AS investFieldValue,
+            a.`status` AS status,
+            b.`business_name` as businessName,
+            c.`staff_code` as staffCode,
+            c.`report_type` as reportType,
+            c.`mission_type` as missionType,
+            e.`type_name` as typeName,
+            d.`staff_name` as staffName
+        FROM
+            rookie_training_system.`rookie_approval_info` AS a
+            LEFT JOIN signed_module_db.`business_list` AS b ON a.`business_id` = b.`business_id`
+            LEFT JOIN rookie_training_system.`report_production_list` AS c ON c.`report_id` = a.`invest_field_value`
+            LEFT JOIN rookie_training_system.`class_student_info` AS d ON c.`staff_code` = d.`staff_code`
+            LEFT JOIN rookie_training_system.`type_list` AS e ON e.`type_id` = c.`report_type`
+        WHERE
+            a.`approve_staff_code` = #{approveStaffCode}
+            AND a.`status` = 1
+            AND b.`status` = 1
+            AND c.`status` = 1
+            AND d.`status` = 1
+            AND a.`is_pass` IN (1, 3)
+            AND a.`invest_table_name` = "report_production_list"
+        ORDER BY
+            a.`is_pass` DESC
+    </select>
+
+    <select id="queryAllInfoVoFromProposal" resultType="com.tsbg.mis.rookie.vo.RookieApprovalInfoVo">
+        SELECT
+            a.`rookie_approval_id` AS rookieApprovalId,
+            a.`signed_date` AS signedDate,
+            a.`business_id` AS businessId,
+            a.`node_id` AS nodeId,
+            a.`node_name` AS nodeName,
+            a.`approve_staff_code` AS approveStaffCode,
+            a.`approve_staff_name` AS approveStaffName,
+            a.`approve_staff_mail` AS approveStaffMail,
+            a.`approve_sequence` AS approveSequence,
+            a.`approve_opinion` AS approveOpinion,
+            a.`grade` AS grade,
+            a.`is_pass` AS isPass,
+            a.`proj_id` AS projId,
+            a.`invest_table_name` AS investTableName,
+            a.`invest_field_name` AS investFieldName,
+            a.`invest_field_value` AS investFieldValue,
+            a.`status` AS status,
+            b.`business_name` as businessName,
+            c.`staff_code` as staffCode,
+            c.`report_type` as reportType,
+            e.`type_name` as typeName,
+            d.`staff_name` as staffName
+        FROM
+            rookie_training_system.`rookie_approval_info` AS a
+            LEFT JOIN signed_module_db.`business_list` AS b ON a.`business_id` = b.`business_id`
+            LEFT JOIN rookie_training_system.`report_production_proposal_list` AS c ON c.`proposal_id` = a.`invest_field_value`
+            LEFT JOIN rookie_training_system.`class_student_info` AS d ON c.`staff_code` = d.`staff_code`
+            LEFT JOIN rookie_training_system.`type_list` AS e ON e.`type_id` = c.`report_type`
+        WHERE
+            a.`approve_staff_code` = #{approveStaffCode}
+            AND a.`status` = 1
+            AND b.`status` = 1
+            AND c.`status` = 1
+            AND d.`status` = 1
+            AND a.`is_pass` IN (1, 3)
+            AND a.`invest_table_name` = "report_production_proposal_list"
+        ORDER BY
+            a.`is_pass` DESC
+    </select>
+
+    <!--查询 levelTypeName-->
+    <select id="queryLevelTypeName" resultType="java.lang.String">
+        select
+            a.`type_name` as levelTypeName
+        from
+            rookie_training_system.`type_list` as a
+        where
+            a.`type_id` = #{levelType}
+    </select>
+
+    <!--查询所有月目标审核任务-->
+    <select id="queryMonthTargetApproval" resultType="com.tsbg.mis.rookie.vo.MonthTargetApprovalVo">
+        SELECT
+            a.`rookie_approval_id` AS rookieApprovalId,
+            a.`signed_date` AS signedDate,
+            a.`business_id` AS businessId,
+            a.`node_id` AS nodeId,
+            a.`node_name` AS nodeName,
+            a.`approve_staff_code` AS approveStaffCode,
+            a.`approve_staff_name` AS approveStaffName,
+            a.`approve_staff_mail` AS approveStaffMail,
+            a.`approve_sequence` AS approveSequence,
+            a.`approve_opinion` AS approveOpinion,
+            a.`grade` AS grade,
+            a.`is_pass` AS isPass,
+            a.`proj_id` AS projId,
+            a.`invest_table_name` AS investTableName,
+            a.`invest_field_name` AS investFieldName,
+            a.`invest_field_value` AS investFieldValue,
+            a.`status` AS STATUS,
+            b.`business_name` AS businessName,
+            c.`target_num` AS targetNum,
+            c.`create_date` AS createDate,
+            c.`staff_code` AS setStaffCode,
+            f.`user_name` AS setUserName,
+            d.`staff_code` AS studentStaffCode,
+            e.`staff_name` AS studentUserName,
+            e.`BG_name` AS bgName,
+            e.`organization_name` AS organizationName
+        FROM
+            rookie_training_system.`rookie_approval_info` AS a
+            LEFT JOIN signed_module_db.`business_list` AS b ON a.`business_id` = b.`business_id`
+            LEFT JOIN (
+            SELECT
+                target_num,
+                create_date,
+                staff_code,
+                max( target_id )
+            FROM
+                rookie_training_system.`depart_target_list`
+            WHERE
+                STATUS = 1
+            GROUP BY
+                target_num,
+                create_date,
+                staff_code
+            ) AS c ON a.`invest_field_value` = c.`target_num`
+            LEFT JOIN rookie_training_system.`depart_target_student` AS d ON c.`target_num` = d.`target_num`
+            LEFT JOIN rookie_training_system.`class_student_info` AS e ON d.`staff_code` = e.`staff_code`
+            LEFT JOIN user_database.`user_info` AS f ON f.`staff_code` = c.`staff_code`
+        WHERE
+            a.`approve_staff_code` = #{staffCode}
+            AND a.`invest_table_name` = "depart_target_list"
+            AND a.`invest_field_name` = "target_num"
+            AND a.`status` = 1
+            AND b.`status` = 1
+            AND d.`status` = 1
+            AND e.`status` = 1
+            AND a.`is_pass` IN ( 1, 3 )
+        ORDER BY
+            a.`is_pass` DESC,
+            c.`create_date` DESC
+    </select>
+
+    <select id="queryAllInfoVoFromDepart" resultType="com.tsbg.mis.rookie.vo.RookieApprovalInfoVo">
+        SELECT
+            a.`rookie_approval_id` AS rookieApprovalId,
+            a.`signed_date` AS signedDate,
+            a.`business_id` AS businessId,
+            a.`node_id` AS nodeId,
+            a.`node_name` AS nodeName,
+            a.`approve_staff_code` AS approveStaffCode,
+            a.`approve_staff_name` AS approveStaffName,
+            a.`approve_staff_mail` AS approveStaffMail,
+            a.`approve_sequence` AS approveSequence,
+            a.`approve_opinion` AS approveOpinion,
+            a.`fulfillment_of_schedule` AS fulfillmentOfSchedule,
+            a.`target_comment` AS targetComment,
+            a.`grade` AS grade,
+            a.`is_pass` AS isPass,
+            a.`proj_id` AS projId,
+            a.`invest_table_name` AS investTableName,
+            a.`invest_field_name` AS investFieldName,
+            a.`invest_field_value` AS investFieldValue,
+            a.`status` AS status,
+            b.`business_name` as businessName,
+            c.`staff_code` as staffCode,
+            c.`report_type` as reportType,
+            c.`mission_type` AS missionType,
+            e.`type_name` as typeName,
+            d.`staff_name` as staffName
+        FROM
+            rookie_training_system.`rookie_approval_info` AS a
+            LEFT JOIN signed_module_db.`business_list` AS b ON a.`business_id` = b.`business_id`
+            LEFT JOIN rookie_training_system.`report_depart_list` AS c ON c.`report_id` = a.`invest_field_value`
+            LEFT JOIN rookie_training_system.`class_student_info` AS d ON c.`staff_code` = d.`staff_code`
+            LEFT JOIN rookie_training_system.`type_list` AS e ON e.`type_id` = c.`report_type`
+        WHERE
+            a.`approve_staff_code` = #{approveStaffCode}
+            AND a.`status` = 1
+            AND b.`status` = 1
+            AND c.`status` = 1
+            AND d.`status` = 1
+            AND a.`is_pass` IN (1, 3)
+            AND a.`invest_table_name` = "report_depart_list"
+        ORDER BY
+            a.`is_pass` DESC
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="rookieApprovalId" useGeneratedKeys="true">
+        insert into rookie_training_system.rookie_approval_info(business_id, node_id, node_name, approve_staff_code, approve_staff_name, approve_sequence, is_pass, proj_id, invest_table_name, invest_field_name, invest_field_value, status)
+        values (#{businessId}, #{nodeId}, #{nodeName}, #{approveStaffCode}, #{approveStaffName}, #{approveSequence}, #{isPass}, #{projId}, #{investTableName}, #{investFieldName}, #{investFieldValue}, #{status})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update rookie_training_system.rookie_approval_info
+        <set>
+            <if test="signedDate != null">
+                signed_date = #{signedDate},
+            </if>
+            <if test="businessId != null">
+                business_id = #{businessId},
+            </if>
+            <if test="nodeId != null">
+                node_id = #{nodeId},
+            </if>
+            <if test="nodeName != null and nodeName != ''">
+                node_name = #{nodeName},
+            </if>
+            <if test="approveStaffCode != null and approveStaffCode != ''">
+                approve_staff_code = #{approveStaffCode},
+            </if>
+            <if test="approveStaffName != null and approveStaffName != ''">
+                approve_staff_name = #{approveStaffName},
+            </if>
+            <if test="approveStaffMail != null and approveStaffMail != ''">
+                approve_staff_mail = #{approveStaffMail},
+            </if>
+            <if test="approveSequence != null">
+                approve_sequence = #{approveSequence},
+            </if>
+            <if test="approveOpinion != null and approveOpinion != ''">
+                approve_opinion = #{approveOpinion},
+            </if>
+            <if test="fulfillmentOfSchedule != null and fulfillmentOfSchedule != ''">
+                fulfillment_of_schedule = #{fulfillmentOfSchedule},
+            </if>
+            <if test="targetComment != null and targetComment != ''">
+                target_comment = #{targetComment},
+            </if>
+            <if test="levelType != null">
+                level_type = #{levelType},
+            </if>
+            <if test="grade != null and grade != ''">
+                grade = #{grade},
+            </if>
+            <if test="isPass != null">
+                is_pass = #{isPass},
+            </if>
+            <if test="projId != null">
+                proj_id = #{projId},
+            </if>
+            <if test="investTableName != null and investTableName != ''">
+                invest_table_name = #{investTableName},
+            </if>
+            <if test="investFieldName != null and investFieldName != ''">
+                invest_field_name = #{investFieldName},
+            </if>
+            <if test="investFieldValue != null and investFieldValue != ''">
+                invest_field_value = #{investFieldValue},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+        </set>
+        where rookie_approval_id = #{rookieApprovalId}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from rookie_training_system.rookie_approval_info where rookie_approval_id = #{rookieApprovalId}
+    </delete>
+
+</mapper>

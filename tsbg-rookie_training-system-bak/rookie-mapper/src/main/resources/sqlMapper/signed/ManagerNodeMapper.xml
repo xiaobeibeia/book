@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tsbg.mis.dao.signed.ManagerNodeDao">
+
+    <resultMap type="com.tsbg.mis.signed.model.ManagerNode" id="ManagerNodeMap">
+        <result property="manaNodeId" column="mana_node_id" jdbcType="INTEGER"/>
+        <result property="signNodeId" column="sign_node_id" jdbcType="INTEGER"/>
+        <result property="businessId" column="business_id" jdbcType="INTEGER"/>
+        <result property="nodeName" column="node_name" jdbcType="VARCHAR"/>
+        <result property="managerCode" column="manager_code" jdbcType="VARCHAR"/>
+        <result property="managerName" column="manager_name" jdbcType="VARCHAR"/>
+        <result property="managerMailAddress" column="manager_mail_address" jdbcType="VARCHAR"/>
+        <result property="projId" column="proj_id" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="ManagerNodeMap">
+        select
+          mana_node_id, sign_node_id, business_id, node_name, manager_code, manager_name, manager_mail_address, proj_id, status
+        from signed_module_db.manager_node
+        where mana_node_id = #{manaNodeId}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="ManagerNodeMap">
+        select
+          mana_node_id, sign_node_id, business_id, node_name, manager_code, manager_name, manager_mail_address, proj_id, status
+        from signed_module_db.manager_node
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="ManagerNodeMap">
+        select
+          mana_node_id, sign_node_id, business_id, node_name, manager_code, manager_name, manager_mail_address, proj_id, status
+        from signed_module_db.manager_node
+        <where>
+            <if test="manaNodeId != null">
+                and mana_node_id = #{manaNodeId}
+            </if>
+            <if test="signNodeId != null">
+                and sign_node_id = #{signNodeId}
+            </if>
+            <if test="businessId != null">
+                and business_id = #{businessId}
+            </if>
+            <if test="nodeName != null and nodeName != ''">
+                and node_name = #{nodeName}
+            </if>
+            <if test="managerCode != null and managerCode != ''">
+                and manager_code = #{managerCode}
+            </if>
+            <if test="managerName != null and managerName != ''">
+                and manager_name = #{managerName}
+            </if>
+            <if test="managerMailAddress != null and managerMailAddress != ''">
+                and manager_mail_address = #{managerMailAddress}
+            </if>
+            <if test="projId != null">
+                and proj_id = #{projId}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="manaNodeId" useGeneratedKeys="true">
+        insert into signed_module_db.manager_node(sign_node_id, business_id, node_name, manager_code, manager_name, manager_mail_address, proj_id, status)
+        values (#{signNodeId}, #{businessId}, #{nodeName}, #{managerCode}, #{managerName}, #{managerMailAddress}, #{projId}, #{status})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update signed_module_db.manager_node
+        <set>
+            <if test="signNodeId != null">
+                sign_node_id = #{signNodeId},
+            </if>
+            <if test="businessId != null">
+                business_id = #{businessId},
+            </if>
+            <if test="nodeName != null and nodeName != ''">
+                node_name = #{nodeName},
+            </if>
+            <if test="managerCode != null and managerCode != ''">
+                manager_code = #{managerCode},
+            </if>
+            <if test="managerName != null and managerName != ''">
+                manager_name = #{managerName},
+            </if>
+            <if test="managerMailAddress != null and managerMailAddress != ''">
+                manager_mail_address = #{managerMailAddress},
+            </if>
+            <if test="projId != null">
+                proj_id = #{projId},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+        </set>
+        where mana_node_id = #{manaNodeId}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from signed_module_db.manager_node where mana_node_id = #{manaNodeId}
+    </delete>
+
+</mapper>

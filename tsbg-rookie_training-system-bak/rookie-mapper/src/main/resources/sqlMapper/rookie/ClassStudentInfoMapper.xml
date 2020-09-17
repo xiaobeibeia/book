@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tsbg.mis.dao.rookie.ClassStudentInfoDao" >
+
+  <resultMap id="BaseResultMap" type="com.tsbg.mis.rookie.model.ClassStudentInfo" />
+
+    <sql id="Base_Column_List">
+    student_id studentId,staff_code staffCode,staff_name staffName,staff_simple_name staffSimpleName,grade_id gradeId,squad_id squadId,
+    student_type studentType,graduate_date graduateDate,graduate_school graduateSchool,gender,join_date joinDate,phone_num phoneNum,school_type schoolType,
+    education,factory_name factoryName,BG_id bgId,BG_name bgName,unit_id unitId,unit_name unitName,BU_id buId,BU_name buName,depart_id departId,depart_name departName,
+    class_id classId,class_name className,direct_manager_code directManagerCode,direct_manager_name directManagerName,depart_manager_code departManagerCode,
+    depart_manager_name departManagerName,unit_manager_code unitManagerCode,unit_manager_name unitManagerName,class_period classPeriod,organization_name organizationName,status
+    </sql>
+
+  <select id="selectAll" resultType="com.tsbg.mis.rookie.model.ClassStudentInfo">
+    SELECT
+    student_id studentId,staff_code staffCode,staff_name staffName,staff_simple_name staffSimpleName,A.grade_id gradeId,A.squad_id squadId,B.type_name typeName,
+    student_type studentType,graduate_date graduateDate,graduate_school graduateSchool,gender,join_date joinDate,phone_num phoneNum,school_type schoolType,
+    education,factory_name factoryName,BG_id bgId,BG_name bgName,unit_id unitId,unit_name unitName,BU_id buId,BU_name buName,depart_id departId,depart_name departName,
+    class_id classId,class_name className,direct_manager_code directManagerCode,direct_manager_name directManagerName,depart_manager_code departManagerCode,
+    depart_manager_name departManagerName,unit_manager_code unitManagerCode,unit_manager_name unitManagerName,A.class_period classPeriod,organization_name organizationName,
+    A.status,C.grade_name gradeName, D.squad_name squadName, A.coach_code coachCode, A.coach_name coachName
+    FROM rookie_training_system.class_student_info A
+    LEFT JOIN rookie_training_system.type_list B ON A.student_type = B.type_id
+    LEFT JOIN rookie_training_system.class_grade_info C ON A.grade_id = C.grade_id
+    LEFT JOIN rookie_training_system.class_squad_list D ON A.squad_id = D.squad_id
+    WHERE A.`status` = 1
+    <if test="organizationName != null and organizationName !='' ">
+      AND organization_name LIKE CONCAT('%', #{organizationName}, '%')
+    </if>
+    <if test="classPeriod != null and classPeriod !='' ">
+      AND A.class_period = #{classPeriod}
+    </if>
+    <if test="gradeId != null">
+      AND A.grade_id = #{gradeId}
+    </if>
+    <if test="staffCode != null and staffCode !='' ">
+      AND staff_code LIKE CONCAT('%', #{staffCode}, '%')
+    </if>
+    <if test="staffName != null and staffName !='' ">
+      AND staff_name LIKE CONCAT('%', #{staffName}, '%')
+    </if>
+    <if test="studentType != null">
+      AND student_type = #{studentType}
+    </if>
+    <if test="studentId != null">
+      AND student_id = #{studentId}
+    </if>
+    <if test="buName != null and buName !='' ">
+      AND BU_name = #{buName}
+    </if>
+    ORDER BY A.grade_id
+  </select>
+
+  <select id="selectClassPeriod" resultType="java.lang.String">
+    SELECT class_period classPeriod FROM rookie_training_system.class_student_info
+    WHERE `status` = 1
+    GROUP BY class_period
+  </select>
+
+  <select id="selectAllStudentByClassPeriod" resultMap="BaseResultMap">
+    SELECT
+      <include refid="Base_Column_List" />
+    FROM rookie_training_system.class_student_info
+    WHERE `status` = 1 AND class_period = #{classPeriod}
+  </select>
+
+  <select id="selectGradeInfo" resultType="com.tsbg.mis.rookie.model.ClassGradeInfo">
+    SELECT grade_id gradeId, grade_name gradeName, class_period classPeriod
+    FROM rookie_training_system.class_grade_info
+    WHERE status = 1
+    <if test="classPeriod !=null and classPeriod !='' ">
+      AND class_period = #{classPeriod}
+    </if>
+  </select>
+
+  <select id="selectClassPeriodByGradeId" resultType="java.lang.String">
+    SELECT class_period classPeriod FROM rookie_training_system.class_grade_info
+    WHERE status = 1 AND grade_id = #{gradeId}
+  </select>
+
+  <select id="selectGradeNameByClassPeriod" resultType="java.lang.String">
+    SELECT grade_name gradeName FROM rookie_training_system.class_grade_info
+    WHERE status = 1 AND class_period = #{classPeriod}
+  </select>
+
+  <update id="modifyGradeName">
+    UPDATE rookie_training_system.class_grade_info
+    SET
+    <if test="gradeId !=null">
+      grade_name = #{gradeName},
+    </if>
+    <if test="updateCode !=null and updateCode !='' ">
+      update_code = #{updateCode},
+    </if>
+    <if test="updateDate !=null">
+      update_date = #{updateDate}
+    </if>
+    WHERE grade_id = #{gradeId}
+  </update>
+
+  <update id="delGradeInfo">
+    UPDATE rookie_training_system.class_grade_info
+    SET
+    <if test="status != null">
+      status = #{status},
+    </if>
+    <if test="updateCode !=null and updateCode !='' ">
+      update_code = #{updateCode},
+    </if>
+    <if test="updateDate !=null">
+      update_date = #{updateDate}
+    </if>
+    WHERE grade_id = #{gradeId}
+  </update>
+
+  <update id="resetStudentInfo">
+    UPDATE rookie_training_system.class_student_info
+    SET grade_id = 0,squad_id = 0,student_type = 63
+    WHERE grade_id = #{gradeId}
+  </update>
+
+  <insert id="divideIntoClasses" useGeneratedKeys="true" keyProperty="gradeId">
+    INSERT INTO class_grade_info
+        (grade_name,class_period,creator_code,create_date,update_code,update_date)
+    VALUES
+        (#{gradeName},#{classPeriod},#{creatorCode},#{createDate},#{updateCode},#{updateDate})
+  </insert>
+
+  <select id="selectCountGrade" resultType="java.lang.Integer">
+    SELECT COUNT(0) FROM class_grade_info WHERE status = 1 AND class_period = #{classPeriod}
+  </select>
+
+  <select id="selectGradeIdByClassPeriod" resultType="java.lang.Integer">
+    SELECT grade_id FROM rookie_training_system.class_grade_info WHERE status = 1 AND class_period = #{classPeriod} group by grade_id
+  </select>
+
+  <update id="updateGradeId">
+    UPDATE rookie_training_system.class_student_info
+        SET grade_id = #{gradeId},squad_id = 0
+    WHERE staff_code = #{staffCode}
+  </update>
+
+  <update id="resetClassMembers">
+    UPDATE rookie_training_system.class_student_info
+        SET grade_id = 0,squad_id = 0,student_type = 63
+    WHERE status = 1 AND class_period = #{classPeriod}
+  </update>
+
+  <insert id="addSquad" useGeneratedKeys="true" keyProperty="squadId" >
+    INSERT INTO class_squad_list
+        (grade_id,squad_name,s_leader_code,creator_code,create_date,update_code,update_date)
+    VALUES
+        (#{gradeId},#{squadName},#{sLeaderCode},#{creatorCode},#{createDate},#{updateCode},#{updateDate})
+  </insert>
+
+  <update id="modifySLeaderCode">
+    UPDATE rookie_training_system.class_squad_list
+    SET
+    <if test="sLeaderCode != null and sLeaderCode != '' ">
+      s_leader_code = #{sLeaderCode},
+    </if>
+    <if test="updateCode != null and updateCode != '' ">
+      update_code = #{updateCode},
+    </if>
+    <if test="updateDate != null">
+      update_date = #{updateDate}
+    </if>
+    WHERE status = 1 AND squad_id = #{squadId}
+  </update>
+
+  <select id="selectStudentCommittee" resultType="com.tsbg.mis.rookie.vo.StudentCommitteeVo">
+    SELECT staff_code staffCode, staff_name staffName, type_name typeName, a.grade_id gradeId, d.grade_name gradeName,
+            a.squad_id squadId, squad_name squadName, student_type studentType
+    FROM rookie_training_system.class_student_info a
+    LEFT JOIN rookie_training_system.class_squad_list b on a.squad_id = b.squad_id
+    LEFT JOIN rookie_training_system.type_list c on a.student_type = c.type_id
+    LEFT JOIN rookie_training_system.class_grade_info d on a.grade_id = d.grade_id
+    WHERE a.`status` = 1 AND a.grade_id = #{gradeId} AND student_type != 63
+  </select>
+
+    <select id="selectClassCommittee" resultType="com.tsbg.mis.rookie.vo.StudentCommitteeVo">
+    SELECT staff_code staffCode, staff_name staffName, type_name typeName, a.grade_id gradeId, d.grade_name gradeName,
+            a.squad_id squadId, squad_name squadName, student_type studentType
+    FROM rookie_training_system.class_student_info a
+    LEFT JOIN rookie_training_system.class_squad_list b on a.squad_id = b.squad_id
+    LEFT JOIN rookie_training_system.type_list c on a.student_type = c.type_id
+    LEFT JOIN rookie_training_system.class_grade_info d on a.grade_id = d.grade_id
+    WHERE a.`status` = 1 AND a.grade_id = #{gradeId} AND student_type not in (63,68)
+    </select>
+
+    <update id="modifyClassCommittee">
+    	UPDATE rookie_training_system.class_student_info
+		SET student_type = 63
+		WHERE staff_code = #{staffCode} AND grade_id = #{gradeId}
+    </update>
+
+  <update id="modifyStudentTypeByStaffCode">
+    UPDATE rookie_training_system.class_student_info
+    SET student_type = #{studentType}
+    WHERE 0=0
+    <if test="gradeId !=null ">
+      AND grade_id = #{gradeId}
+    </if>
+    <if test="staffCode !=null and staffCode !='' ">
+      AND staff_code = #{staffCode}
+    </if>
+  </update>
+
+  <select id="selectStudentByGradeId" resultType="com.tsbg.mis.rookie.model.ClassStudentInfo">
+    SELECT a.staff_code staffCode,a.staff_name staffName,b.grade_name gradeName,a.organization_name organizationName,a.student_type studentType,c.type_name typeName
+    FROM class_student_info a
+    LEFT JOIN class_grade_info b on a.grade_id = b.grade_id
+    LEFT JOIN type_list c on c.type_id = a.student_type
+    WHERE a.status = 1 AND squad_id = 0 AND a.grade_id = #{gradeId}
+  </select>
+
+  <select id="selectSquadByGrade" resultType="java.lang.Integer">
+      SELECT squad_id FROM rookie_training_system.class_squad_list
+      WHERE grade_id = #{gradeId} AND status = 1
+      GROUP BY squad_id
+  </select>
+
+  <select id="selectSLeaderByStudentType" resultType="com.tsbg.mis.rookie.model.ClassSquadList">
+     SELECT a.squad_id squadId,a.squad_name squadName,a.s_leader_code sLeaderCode,b.staff_name staffName,student_type studentType
+     FROM rookie_training_system.class_squad_list a
+	 LEFT JOIN rookie_training_system.class_student_info b on a.s_leader_code = b.staff_code
+     WHERE a.`status` = 1
+      <if test="gradeId != null">
+        AND a.grade_id = #{gradeId}
+      </if>
+      <if test="squadId != null">
+        AND a.squad_id = #{squadId}
+      </if>
+       AND student_type = 68
+  </select>
+
+    <select id="selectGroupStudentByStudentType" resultType="com.tsbg.mis.rookie.model.ClassStudentInfo">
+     SELECT
+        <include refid="Base_Column_List" />
+     FROM rookie_training_system.class_student_info
+     WHERE `status` = 1 AND grade_id = #{gradeId} AND squad_id = #{squadId} AND student_type != 68
+  </select>
+
+  <update id="updateSquadIdAndStudentType">
+    UPDATE rookie_training_system.class_student_info
+    SET squad_id = 0,student_type = 63
+    where squad_id = #{squadId} and `status` = 1
+  </update>
+
+  <update id="updateStudentTypeByGradeIdAndStaffCode">
+    UPDATE rookie_training_system.class_student_info
+    SET
+      <if test="studentType != null">
+          student_type = #{studentType},
+      </if>
+      <if test="squadId != null">
+          squad_id = #{squadId}
+      </if>
+    WHERE staff_code = #{staffCode}
+  </update>
+
+  <update id="modifySquadMembers">
+    UPDATE rookie_training_system.class_student_info
+    SET squad_id = 0
+    <if test="studentType != null">
+      ,student_type = #{studentType}
+    </if>
+    WHERE 0=0
+    <if test="staffCode != null and staffCode !='' ">
+      AND staff_code = #{staffCode}
+    </if>
+    <if test="squadId != null">
+      AND squad_id = #{squadId}
+    </if>
+
+  </update>
+
+  <update id="delSquad">
+    UPDATE rookie_training_system.class_squad_list set status = 0
+    WHERE squad_id = #{squadId}
+  </update>
+
+  <select id="selectAllBuList" resultType="com.tsbg.mis.base.BuList">
+    SELECT BU_id buId,BU_name buName FROM master_database.bu_list WHERE status = 1
+  </select>
+</mapper>

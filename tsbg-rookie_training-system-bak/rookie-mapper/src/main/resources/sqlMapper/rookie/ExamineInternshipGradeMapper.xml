@@ -1,0 +1,760 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tsbg.mis.dao.rookie.ProductionLineExamineDao">
+
+    <resultMap type="com.tsbg.mis.rookie.model.ExamineInternshipGrade" id="ExamineInternshipGradeMap">
+        <result property="examineId" column="examine_id" jdbcType="INTEGER"/>
+        <result property="staffCode" column="staff_code" jdbcType="VARCHAR"/>
+        <result property="pid" column="pid" jdbcType="INTEGER"/>
+        <result property="creationId" column="creation_id" jdbcType="INTEGER"/>
+        <result property="internshipType" column="internship_type" jdbcType="INTEGER"/>
+        <result property="lineId" column="line_id" jdbcType="INTEGER"/>
+        <result property="internshipComment" column="internship_comment" jdbcType="VARCHAR"/>
+        <result property="comment" column="comment" jdbcType="VARCHAR"/>
+        <result property="examineTypeId" column="examine_type_id" jdbcType="INTEGER"/>
+        <result property="examineGrade" column="examine_grade" jdbcType="VARCHAR"/>
+        <result property="countNum" column="count_num" jdbcType="INTEGER"/>
+        <result property="reason" column="reason" jdbcType="VARCHAR"/>
+        <result property="isReExamine" column="is_re_examine" jdbcType="INTEGER"/>
+        <result property="createCode" column="create_code" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="updateCode" column="update_code" jdbcType="VARCHAR"/>
+        <result property="updateDate" column="update_date" jdbcType="TIMESTAMP"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="ExamineInternshipGradeMap">
+        select
+        examine_id, staff_code, pid, creation_id,internship_type, line_id, internship_comment, comment, examine_type_id,
+        examine_grade, count_num, reason, is_re_examine, create_code, create_date, update_code, update_date, status
+        from rookie_training_system.examine_internship_grade
+        where examine_id = #{examineId}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="ExamineInternshipGradeMap">
+        select
+        examine_id, staff_code, pid, creation_id,internship_type, line_id, internship_comment, comment, examine_type_id,
+        examine_grade, count_num, reason, is_re_examine, create_code, create_date, update_code, update_date, status
+        from rookie_training_system.examine_internship_grade
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="examineId" useGeneratedKeys="true">
+        insert into rookie_training_system.examine_internship_grade(staff_code, pid, creation_id,internship_type, line_id,
+        internship_comment, comment, examine_type_id, examine_grade, count_num, reason, is_re_examine, create_code,
+        create_date, update_code, update_date, status)
+        values (#{staffCode}, #{pid}, #{internshipType}, #{lineId}, #{internshipComment}, #{comment}, #{examineTypeId},
+        #{examineGrade}, #{countNum}, #{reason}, #{isReExamine}, #{createCode}, #{createDate}, #{updateCode},
+        #{updateDate}, #{status})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update rookie_training_system.examine_internship_grade
+        <set>
+            <if test="staffCode != null and staffCode != ''">
+                staff_code = #{staffCode},
+            </if>
+            <if test="pid != null">
+                pid = #{pid},
+            </if>
+            <if test="internshipType != null">
+                internship_type = #{internshipType},
+            </if>
+            <if test="lineId != null">
+                line_id = #{lineId},
+            </if>
+            <if test="internshipComment != null and internshipComment != ''">
+                internship_comment = #{internshipComment},
+            </if>
+            <if test="comment != null and comment != ''">
+                comment = #{comment},
+            </if>
+            <if test="examineTypeId != null">
+                examine_type_id = #{examineTypeId},
+            </if>
+            <if test="examineGrade != null and examineGrade != ''">
+                examine_grade = #{examineGrade},
+            </if>
+            <if test="countNum != null">
+                count_num = #{countNum},
+            </if>
+            <if test="reason != null and reason != ''">
+                reason = #{reason},
+            </if>
+            <if test="isReExamine != null">
+                is_re_examine = #{isReExamine},
+            </if>
+            <if test="createCode != null and createCode != ''">
+                create_code = #{createCode},
+            </if>
+            <if test="createDate != null">
+                create_date = #{createDate},
+            </if>
+            <if test="updateCode != null and updateCode != ''">
+                update_code = #{updateCode},
+            </if>
+            <if test="updateDate != null">
+                update_date = #{updateDate},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+        </set>
+        where examine_id = #{examineId}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from rookie_training_system.examine_internship_grade where examine_id = #{examineId}
+    </delete>
+
+    <select id="inquireAll" resultType="com.tsbg.mis.rookie.vo.ProductionLineExamineVo">
+        SELECT d.internship_type,c.staff_name,d.`status`
+        FROM production_line_list a  LEFT JOIN production_line_student_list b ON a.line_id = b.line_id
+        LEFT JOIN class_student_info c ON c.staff_code = b.staff_code
+        LEFT JOIN examine_internship_grade d ON d.staff_code = c.staff_code
+        <where>
+            <if test="staffCode != null">
+                a.line_leader_code = #{staffCode}
+            </if>
+            <if test="staffCode != null">
+                OR a.line_manager_code = #{staffCode}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectLeaderUnderStudents" resultType="com.tsbg.mis.rookie.vo.ExamineStudentVo">
+        SELECT a.staff_code AS staffCode,a.staff_name AS staffName
+        FROM class_student_info  a
+        LEFT JOIN production_line_student_list b ON a.staff_code = b.staff_code
+        WHERE b.line_id = #{lineId}
+        AND b.`internship_start_date` &lt;= #{internshipEnd}
+        and b.`internship_end_date` &gt;= #{internshipEnd}
+        and b.`status` = 1
+
+    </select>
+
+    <select id="selectLeaderUnderStudentsByParam" resultType="com.tsbg.mis.rookie.vo.ExamineStudentVo">
+        SELECT a.staff_code AS staffCode,a.staff_name AS staffName
+        FROM class_student_info  a
+        LEFT JOIN production_line_student_list b ON a.staff_code = b.staff_code
+        <where>
+            b.line_id = #{lineId}
+            <if test="studentStaffName!=null and studentStaffName!=''">
+                AND a.staff_name LIKE CONCAT('%',#{studentStaffName},'%')
+            </if>
+            <if test="studentStaffCode!=null and studentStaffCode!=''">
+                AND a.staff_code LIKE CONCAT('%',#{studentStaffCode},'%')
+            </if>
+            AND  b.`status` = 1
+        </where>
+    </select>
+    <select id="selectManagerUnderStudentsByParam" resultType="com.tsbg.mis.rookie.vo.ExamineStudentVo">
+
+        select a.staff_code staffCode,a.staff_name staffName
+        FROM class_student_info  AS a
+        LEFT JOIN production_line_student_list b ON b.staff_code = a.staff_code
+        LEFT JOIN production_line_list c ON c.line_id	= b.line_id
+        where
+        c.line_manager_code =  #{staffCode}
+        <if test="studentStaffName != null and studentStaffName != ''">
+            and c.staff_name LIKE CONCAT('%',#{studentStaffName},'%')
+        </if>
+        and c.create_date in (
+        SELECT max(create_date)
+        FROM production_line_list
+        GROUP BY line_leader_code,line_group_leader_code,line_manager_code
+        )
+
+    </select>
+    <select id="selectNewStudentsByParam" resultType="com.tsbg.mis.rookie.vo.ExamineStudentVo">
+        SELECT a.staff_code AS staffCode,a.staff_name AS staffName
+        FROM class_student_info  a
+        <where>
+            a.class_period = (
+            SELECT max(class_period) FROM rookie_training_system.class_student_info
+            WHERE a.`status` = 1
+            )
+            <if test="studentStaffName!=null and studentStaffName!=''">
+                AND a.staff_name LIKE CONCAT('%',#{studentStaffName},'%')
+            </if>
+            <if test="studentStaffCode!=null and studentStaffCode!=''">
+                AND a.staff_code LIKE CONCAT('%',#{studentStaffCode},'%')
+            </if>
+
+        </where>
+    </select>
+
+    <select id="selectNewLineForStudents" resultType="com.tsbg.mis.rookie.vo.NewLineForStudentsVo">
+        SELECT a.staff_code AS staffCode,c.staff_name AS staffName, b.line_id AS lineId, b.line_leader_code AS lineLeaderCode,b.line_group_leader_code AS lineGroupLeaderCode,b.line_manager_code AS lineManageCode
+        FROM rookie_training_system.production_line_student_list a
+        LEFT JOIN rookie_training_system.production_line_list b ON a.line_id = b.line_id
+        LEFT JOIN rookie_training_system.class_student_info c ON a.staff_code = c.staff_code
+        where a.internship_end_date in (
+		      SELECT max(internship_end_date)
+	          FROM production_line_student_list
+	          WHERE `status` = 1
+	          GROUP BY staff_code
+              )
+        AND c.class_period = (
+            SELECT max(class_period) FROM rookie_training_system.class_student_info
+            WHERE `status` = 1
+            )
+    </select>
+
+    <select id="selectNewLineForStudentsByParam" resultType="com.tsbg.mis.rookie.vo.NewLineForStudentsVo">
+        SELECT a.staff_code AS staffCode,c.staff_name AS staffName, b.line_id AS lineId, b.line_leader_code AS lineLeaderCode,b.line_group_leader_code AS lineGroupLeaderCode,b.line_manager_code AS lineManageCode
+        FROM rookie_training_system.production_line_student_list a
+        LEFT JOIN rookie_training_system.production_line_list b ON a.line_id = b.line_id
+        LEFT JOIN rookie_training_system.class_student_info c ON a.staff_code = c.staff_code
+        <where>
+            a.internship_end_date in (
+            SELECT max(internship_end_date)
+            FROM production_line_student_list
+            WHERE `status` = 1
+            GROUP BY staff_code
+            )
+            AND c.class_period = (
+            SELECT max(class_period) FROM rookie_training_system.class_student_info
+            WHERE `status` = 1
+            )
+            <if test="staffName!=null and staffName!=''">
+                AND c.staff_name LIKE CONCAT('%',#{staffName},'%')
+            </if>
+            <if test="staffCode!=null and staffCode!=''">
+                AND c.staff_code LIKE CONCAT('%',#{staffCode},'%')
+            </if>
+        </where>
+    </select>
+    <select id="selectManagerUnderStudents"  resultType="com.tsbg.mis.rookie.vo.ExamineStudentVo">
+        select a.staff_code staffCode,a.staff_name staffName
+        FROM class_student_info  AS a
+        LEFT JOIN production_line_student_list b ON b.staff_code = a.staff_code
+        LEFT JOIN production_line_list c ON c.line_id	= b.line_id
+        where
+        c.line_manager_code =  #{staffCode}
+        AND a.status = 1
+        and c.create_date in (
+        SELECT max(create_date)
+        FROM production_line_list
+        GROUP BY line_leader_code,line_group_leader_code,line_manager_code
+        )
+
+    </select>
+
+    <select id="queryUserRole" resultType="java.lang.Integer">
+        SELECT a.role_id
+        FROM user_database.user_role a
+        LEFT JOIN user_database.user_info b ON a.user_id = b.user_id
+        <where>
+            b.staff_code  = #{staffCode}
+            and a.is_lock =1
+            and a.status = 1
+        </where>
+
+    </select>
+
+    <select id="selectPendingApproval" resultType="com.tsbg.mis.rookie.model.ExamineInternshipGrade" >
+        SELECT examine_id AS examineId,  staff_code AS staffCode, pid, creation_id AS creationId,internship_type AS internshipType, line_id AS lineId, internship_comment AS internshipComment, comment, examine_type_id AS examineTypeId,
+        examine_grade AS examineGrade, count_num AS countNum, reason, is_re_examine AS isReExamine, create_code AS createCode, create_date AS createDate, update_code AS updateCode, update_date AS update_date, status
+        FROM rookie_training_system.examine_internship_grade
+        WHERE staff_code = #{staffCode}
+        AND is_re_examine = 0
+        AND status = 1
+    </select>
+
+    <select id="selectPendingApprovalForManager" resultType="com.tsbg.mis.rookie.model.ExamineInternshipGrade">
+         SELECT examine_id AS examineId,  staff_code AS staffCode, pid, creation_id AS creationId,internship_type AS internshipType, line_id AS lineId, internship_comment AS internshipComment, comment, examine_type_id AS examineTypeId,
+        examine_grade AS examineGrade, count_num AS countNum, reason, is_re_examine AS isReExamine, create_code AS createCode, create_date AS createDate, update_code AS updateCode, update_date AS update_date, status
+        FROM rookie_training_system.examine_internship_grade
+        WHERE staff_code = #{staffCode}
+        AND creation_id = #{creationId}
+        AND status = 1
+    </select>
+    <select id="selectPendingApprovalForHR" resultType="com.tsbg.mis.rookie.model.ExamineInternshipGrade">
+        SELECT examine_id AS examineId,  staff_code AS staffCode, pid, creation_id AS creationId,internship_type AS internshipType, line_id AS lineId, internship_comment AS internshipComment, comment, examine_type_id AS examineTypeId,
+        examine_grade AS examineGrade, count_num AS countNum, reason, is_re_examine AS isReExamine, create_code AS createCode, create_date AS createDate, update_code AS updateCode, update_date AS update_date, status
+        FROM rookie_training_system.examine_internship_grade
+        WHERE staff_code = #{staffCode}
+        AND creation_id = #{creationId}
+        AND examine_type_id IN (18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35)
+        AND status = 1
+    </select>
+
+    <select id="getStudentInformation" resultType="com.tsbg.mis.rookie.vo.ProductionLineInternshipVo">
+        SELECT a.staff_code studentStaffCode ,a.staff_name studentStaffName,a.graduate_school graduateSchool,
+        a.major major,a.organization_name organizationName,a.grade_id gradeId ,c.line_group_leader_name lineGroupLeaderName,
+        c.line_manager_name lineManagerName,d.internship_comment internshipCommend,d.`comment` commment,e.type_name typeName,
+		d.examine_grade examineGrade,d.is_re_examine isReExamine
+        FROM rookie_training_system.class_student_info a
+        LEFT JOIN rookie_training_system.production_line_student_list b ON a.staff_code = b.staff_code
+        LEFT JOIN rookie_training_system.production_line_list c ON c.line_id = b.line_id
+		LEFT JOIN rookie_training_system.examine_internship_grade d ON d.staff_code = a.staff_code
+		LEFT JOIN rookie_training_system.examine_type_list e ON d.examine_type_id = e.examine_type_id
+        WHERE
+        (c.line_manager_code = #{staffCode}
+        OR c.line_group_leader_code = #{staffCode})
+        AND a.staff_name =#{studentStaffName}
+		and b.internship_start_date in (
+        SELECT max(internship_start_date)
+        FROM production_line_student_list
+        GROUP BY staff_code
+        )
+    </select>
+    <select id="queryStudentInformation" resultType="com.tsbg.mis.rookie.vo.StudentInformationVo">
+        SELECT a.staff_code studentStaffCode ,a.staff_name studentStaffName,a.graduate_school graduateSchool,
+        a.major major,a.organization_name organizationName,d.grade_name gradeName ,c.line_group_leader_name lineGroupLeaderName,
+        c.line_group_leader_code lineGroupLeaderStaffCode,c.line_manager_name lineManagerName,c.line_manager_code lineManagerStaffCode
+        FROM rookie_training_system.class_student_info a
+        LEFT JOIN rookie_training_system.production_line_student_list b ON a.staff_code = b.staff_code
+        LEFT JOIN rookie_training_system.production_line_list c ON c.line_id = b.line_id
+        LEFT JOIN rookie_training_system.class_grade_info d ON d.grade_id = a.grade_id
+        WHERE
+         a.staff_code =#{studentStaffCode}
+        AND a.staff_name =#{studentStaffName}
+        AND b.`status` = 1
+        ORDER BY b.internship_start_date DESC
+		LIMIT 1
+    </select>
+
+    <select id="queryInternshipCommentInformation" resultType="com.tsbg.mis.rookie.vo.InternshipCommentInformationVo">
+        SELECT a.internship_comment AS internshipComment ,a.`comment` AS comment
+        FROM rookie_training_system.examine_internship_grade a
+        LEFT JOIN rookie_training_system.production_line_list b ON a.line_id = b.line_id
+        WHERE a.staff_code = #{studentStaffCode}
+        AND a.examine_type_id = 2
+        AND creation_id = #{creationId}
+        AND a.internship_comment != ''
+		AND a.`comment` != ''
+		AND a.status = 1
+        ORDER BY a.create_date DESC
+		LIMIT 1
+
+    </select>
+
+    <select id="queryPersonalPotentialByLineGroupLeader" resultType="com.tsbg.mis.rookie.model.ExamineInternshipGrade">
+        SELECT a.examine_grade AS examineGrade ,a.examine_type_id AS examineTypeId,a.pid pid
+        FROM rookie_training_system.examine_internship_grade a
+        WHERE a.staff_code = #{studentStaffCode}
+        AND a.creation_id = #{creationId}
+        AND a.examine_type_id IN (3,10,11,12,13,14,15,16,17)
+        AND a.is_re_examine = 0
+        AND a.status = 1
+    </select>
+
+
+    <select id="queryPersonalPotentialByLineManager" resultType="com.tsbg.mis.rookie.model.ExamineInternshipGrade">
+        SELECT a.examine_grade AS examineGrade ,a.examine_type_id AS examineTypeId,a.pid pid
+        FROM rookie_training_system.examine_internship_grade a
+        WHERE a.staff_code = #{studentStaffCode}
+        AND a.creation_id = #{creationId}
+        AND a.examine_type_id IN (3,10,11,12,13,14,15,16,17)
+        AND a.is_re_examine = 1
+        AND a.status = 1
+    </select>
+
+    <select id="selectLineIdByStaffCode" resultType="java.lang.Integer">
+        SELECT a.line_id
+        FROM rookie_training_system.production_line_student_list a
+        LEFT JOIN rookie_training_system.class_student_info b ON a.staff_code = b.staff_code
+        WHERE b.staff_code = #{staffCode}
+        ORDER BY a.internship_start_date DESC
+        limit 1
+    </select>
+
+    <select id="inquireAttendance" resultType="com.tsbg.mis.rookie.vo.AttendanceVo">
+        SELECT b.type_name  examineType,a.count_num count_num,a.reason reason,a.examine_grade examineGrade
+        FROM rookie_training_system.examine_internship_grade a
+        LEFT JOIN rookie_training_system.examine_type_list b ON a.examine_type_id=b.examine_type_id
+        where a.staff_code = #{studentCode}
+        AND a.pid IN (4,18)
+        AND  a.`status`=1
+    </select>
+
+    <select id="inquireOtherRewardsAndPunishments" resultType="com.tsbg.mis.rookie.vo.AttendaceRewardsAndPunishmentsVo">
+        SELECT b.type_name  examineType,a.count_num count_num,a.reason reason,a.examine_grade examineGrade
+        FROM rookie_training_system.examine_internship_grade a
+        LEFT JOIN rookie_training_system.examine_type_list b ON a.examine_type_id=b.examine_type_id
+        where a.staff_code = #{studentCode}
+        AND a.pid IN (4,19)
+        AND  a.`status`=1
+    </select>
+
+
+
+    <select id="selectAllStudents" resultType="com.tsbg.mis.rookie.vo.StudentsRatingVo">
+        SELECT a.staff_code AS studentCode,b.staff_name AS studentName,a.examine_type_id AS examineTypeId ,a.examine_grade AS examineGrade
+        FROM rookie_training_system.`examine_internship_grade` a
+        LEFT JOIN rookie_training_system.class_student_info b ON a.staff_code = b.staff_code
+        <where>
+            a.creation_id = #{creationId}
+            AND a.status = 1
+            <if test="examineTypeId == ''">
+                AND a.examine_type_id IN (38,39,40,41,42)
+            </if>
+            <if test="examineTypeId!=null and examineTypeId!=''">
+                AND a.examine_type_id = #{examineTypeId}
+            </if>
+        </where>
+
+    </select>
+    <select id="getDataFromExamine" resultType="java.lang.String">
+        SELECT examine_grade AS examineGrade
+        FROM rookie_training_system.examine_internship_grade
+        WHERE
+        creation_id = #{creationId}
+        AND staff_code = #{studentStaffCode}
+        AND examine_type_id = #{examineTypeId}
+        AND is_re_examine = #{isReExamine}
+        AND status = 1
+        ORDER BY create_date DESC
+        LIMIT 1
+    </select>
+
+
+    <select id="getMonthlyReportGrade" resultType="java.lang.String">
+        SELECT a.grade AS grade
+        FROM rookie_training_system.rookie_approval_info a
+        WHERE a.invest_table_name = 'report_production_list'
+        AND a.invest_field_name = 'report_id'
+        AND a.invest_field_value IN (SELECT  b.report_id FROM (SELECT * FROM rookie_training_system.report_production_list
+                WHERE staff_code = #{staffCode} AND report_type = 11 ORDER BY report_date DESC LIMIT 1) as b)
+        AND a.`status`= 1
+        AND a.is_pass = 1
+    </select>
+
+    <select id="getProposalReportGrade" resultType="java.lang.String">
+        SELECT a.grade
+        FROM rookie_training_system.rookie_approval_info a
+        WHERE a.invest_table_name = 'report_production_proposal_list'
+        AND a.invest_field_name = 'proposal_id'
+        AND a.invest_field_value IN (SELECT b. proposal_id FROM (SELECT * FROM rookie_training_system.report_production_proposal_list
+                            WHERE staff_code = #{staffCode} ORDER BY proposal_date DESC LIMIT 1) as b )
+        AND a.`status`= 1
+        AND a.is_pass = 1
+    </select>
+
+    <select id="getMonthlyReport" resultType="com.tsbg.mis.rookie.vo.ReportProductionListVo">
+        SELECT a.report_id  AS  reportId, a.creation_id AS  creationId,a.staff_code AS  staffCode,a.report_type AS reportType,
+        a.mission_type AS  missionType,a.is_have_problem AS  isHaveProblem,a.report_date AS  reportDate,a.line_id AS lineId ,
+       a.stage_remark AS stageRemark ,a.internship_content AS internshipContent ,a.internship_state AS internshipState,
+        a.knowledge_summary AS  knowledgeSummary,a.question_description AS questionDescription ,a.internship_harvest AS internshipHarvest ,
+        a.question_suggestion AS questionSuggestion ,a.improve_category AS  improveCategory,a.improve_remark AS improveRemark ,
+        a.file_id AS  fileId,a.state_id AS stateId ,a.mental_state AS  mentalState,a.mental_remark AS  mentalRemark,
+        a.attendance AS  attendance,a.create_date AS createDate ,a.update_date AS  updateDate,a.status AS  status
+        FROM rookie_training_system.report_production_list a
+        WHERE
+        a.staff_code = #{staffCode}
+        AND a.report_type = 11
+        AND a.status = 1
+        ORDER BY a.report_date DESC
+        LIMIT 1
+    </select>
+    <select id="getWeeklyReport" resultType="com.tsbg.mis.rookie.vo.WeeklyReportProductionListVo">
+        SELECT a.report_id  AS  reportId, a.creation_id AS  creationId,a.staff_code AS  staffCode,b.staff_name AS staffName,
+        a.mission_type AS  missionType,a.is_have_problem AS  isHaveProblem,a.report_date AS  reportDate,a.line_id AS lineId ,
+        a.internship_state AS  internshipState,a.stage_remark AS stageRemark ,a.internship_content AS internshipContent ,
+        a.knowledge_summary AS  knowledgeSummary,a.question_description AS questionDescription ,a.internship_harvest AS internshipHarvest ,
+        a.question_suggestion AS questionSuggestion ,a.improve_category AS  improveCategory,a.improve_remark AS improveRemark ,
+        a.file_id AS  fileId,a.state_id AS stateId ,a.mental_state AS  mentalState,a.mental_remark AS  mentalRemark,
+        a.attendance AS  attendance,a.create_date AS createDate ,a.update_date AS  updateDate,a.status AS  status,
+        c.line_name AS lineName
+        FROM rookie_training_system.report_production_list a
+				LEFT JOIN rookie_training_system.class_student_info b ON a.staff_code = b.staff_code
+				LEFT JOIN rookie_training_system.production_line_list	c ON a.line_id = c.line_id
+        WHERE
+        a.staff_code = #{staffCode}
+        AND a.report_type = 10
+        AND a.report_date &gt;= #{firstDate}
+        and a.report_date &lt;= #{lastDate}
+        AND a.status = 1
+    </select>
+
+    <select id="getWeekQuestions" resultType="com.tsbg.mis.rookie.model.ReportProductionWeekQuestion">
+        SELECT question_description AS questionDescription,question_suggestion AS questionSuggestion
+        FROM rookie_training_system.report_production_week_question
+        WHERE report_id = #{reportId}
+        AND `status` = 1
+    </select>
+
+    <select id="inquireGrade" resultType="com.tsbg.mis.rookie.model.ExamineInternshipGrade">
+        SELECT examine_id AS examineId,  staff_code AS staffCode, pid, creation_id AS creationId,internship_type AS internshipType, line_id AS lineId, internship_comment AS internshipComment, comment, examine_type_id AS examineTypeId,
+        examine_grade AS examineGrade, count_num AS countNum, reason, is_re_examine AS isReExamine, create_code AS createCode, create_date AS createDate, update_code AS updateCode, update_date AS update_date, status
+        FROM rookie_training_system.examine_internship_grade
+        WHERE staff_code = #{staffCode}
+        AND examine_type_id = #{examineTypeId}
+        AND creation_id = #{creationId}
+        AND status = 1
+        ORDER by create_date DESC
+        limit 1
+    </select>
+    <select id="inquirePersonalPotentialGrade" resultType="com.tsbg.mis.rookie.model.ExamineInternshipGrade">
+        SELECT examine_id AS examineId,  staff_code AS staffCode, pid, creation_id AS creationId,internship_type AS internshipType, line_id AS lineId, internship_comment AS internshipComment, comment, examine_type_id AS examineTypeId,
+        examine_grade AS examineGrade, count_num AS countNum, reason, is_re_examine AS isReExamine, create_code AS createCode, create_date AS createDate, update_code AS updateCode, update_date AS update_date, status
+        FROM rookie_training_system.examine_internship_grade
+        WHERE staff_code = #{staffCode}
+        AND examine_type_id = 3
+        AND creation_id = #{creationId}
+        AND is_re_examine = #{isReExamine}
+        AND status = 1
+    </select>
+    <select id="inquireRank" resultType="com.tsbg.mis.rookie.model.ExamineInternshipGrade">
+        SELECT examine_id AS examineId,  staff_code AS staffCode, pid, creation_id AS creationId,internship_type AS internshipType, line_id AS lineId, internship_comment AS internshipComment, comment, examine_type_id AS examineTypeId,
+        examine_grade AS examineGrade, count_num AS countNum, reason, is_re_examine AS isReExamine, create_code AS createCode, create_date AS createDate, update_code AS updateCode, update_date AS update_date, status
+        FROM rookie_training_system.examine_internship_grade
+        WHERE staff_code = #{staffCode}
+        AND creation_id = #{creationId}
+        AND examine_type_id IN (38,39,40,41,42)
+        AND is_re_examine = 0
+        AND status = 1
+        ORDER  by create_date DESC
+        limit 1
+    </select>
+
+    <select id="getProductionLineInternshipGrade" resultType="com.tsbg.mis.rookie.model.ExamineInternshipGrade">
+        SELECT examine_id AS examineId,  staff_code AS staffCode, pid, creation_id AS creationId,internship_type AS internshipType, line_id AS lineId, internship_comment AS internshipComment, comment, examine_type_id AS examineTypeId,
+        examine_grade AS examineGrade, count_num AS countNum, reason, is_re_examine AS isReExamine, create_code AS createCode, create_date AS createDate, update_code AS updateCode, update_date AS update_date, status
+        FROM rookie_training_system.examine_internship_grade
+        WHERE staff_code = #{staffCode}
+        AND creation_id = #{creationId}
+        AND examine_type_id = 36
+        AND is_re_examine = 0
+        AND status = 1
+        ORDER  by create_date DESC
+        limit 1
+    </select>
+    <select id="selectLeaderUnderLine" resultType="com.tsbg.mis.rookie.model.ProductionLineList">
+        SELECT line_id AS lineId,line_name AS lineName,line_leader_code AS lineLeaderCode,line_group_leader_code AS lineGroupGeaderGode,
+        line_manager_code AS lineManagerCode,status AS status
+        FROM rookie_training_system.production_line_list
+        WHERE line_group_leader_code =  #{staffCode}
+        and create_date in (
+        SELECT max(create_date)
+            FROM production_line_list
+            WHERE `status` = 1
+            GROUP BY line_leader_code,line_group_leader_code,line_manager_code
+        )
+    </select>
+
+    <select id="selectManagerUnderLine" resultType="com.tsbg.mis.rookie.model.ProductionLineList">
+        SELECT line_id AS lineId,line_name AS lineName,line_leader_code AS lineLeaderCode,line_group_leader_code AS lineGroupGeaderGode,
+        line_manager_code AS lineManagerCode,status AS status
+        FROM rookie_training_system.production_line_list
+        WHERE line_manager_code =  #{staffCode}
+        and create_date in (
+        SELECT max(create_date)
+        FROM production_line_list
+        WHERE `status` = 1
+        GROUP BY line_leader_code,line_group_leader_code,line_manager_code
+        )
+    </select>
+    <select id="getTypeNameById" resultType="java.lang.String">
+        SELECT type_name AS typeName
+        FROM rookie_training_system.type_list
+        WHERE type_id = #{typeId}
+    </select>
+    <select id="getLineNameById" resultType="java.lang.String">
+        SELECT line_name AS lineName
+        FROM rookie_training_system.production_line_list
+        WHERE line_id = #{lineId}
+    </select>
+
+    <select id="getAttendaceNumber" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM rookie_training_system.attendance_record
+        WHERE staff_code = #{studentStaffCode}
+        AND staff_name =#{studentStaffName}
+        AND examine_type_id = #{examineTypeId}
+        AND attendance_date &gt;= #{internshipStart}
+        and attendance_date &lt;= #{internshipEnd}
+    </select>
+
+    <select id="getRewardsAndPunishNumber" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM rookie_training_system.reward_punish_record
+        WHERE staff_code = #{studentStaffCode}
+        AND staff_name =#{studentStaffName}
+        AND examine_type_id = #{examineTypeId}
+        AND `date` &gt;= #{internshipStart}
+        and `date` &lt;= #{internshipEnd}
+    </select>
+
+    <select id="getAttendaceByParams" resultType="com.tsbg.mis.rookie.model.ExamineInternshipGrade">
+        SELECT examine_id AS examineId,  staff_code AS staffCode, pid, creation_id AS creationId,internship_type AS internshipType, line_id AS lineId, internship_comment AS internshipComment, comment, examine_type_id AS examineTypeId,
+        examine_grade AS examineGrade, count_num AS countNum, reason, is_re_examine AS isReExamine, create_code AS createCode, create_date AS createDate, update_code AS updateCode, update_date AS update_date, status
+        FROM rookie_training_system.examine_internship_grade
+        WHERE staff_code = #{studentStaffCode}
+        AND creation_id = #{creationId}
+        AND examine_type_id IN (20,21,22,23,24)
+        AND status = 1
+    </select>
+    <select id="getRewardsAndPunishByParams" resultType="com.tsbg.mis.rookie.model.ExamineInternshipGrade">
+        SELECT examine_id AS examineId,  staff_code AS staffCode, pid, creation_id AS creationId,internship_type AS internshipType, line_id AS lineId, internship_comment AS internshipComment, comment, examine_type_id AS examineTypeId,
+        examine_grade AS examineGrade, count_num AS countNum, reason, is_re_examine AS isReExamine, create_code AS createCode, create_date AS createDate, update_code AS updateCode, update_date AS update_date, status
+        FROM rookie_training_system.examine_internship_grade
+        WHERE staff_code = #{studentStaffCode}
+        AND creation_id = #{creationId}
+        AND examine_type_id IN (25,26,27,28,29,30,31,32,33,34,35)
+        AND status = 1
+    </select>
+
+    <select id="selectSameCommentDate" resultType="com.tsbg.mis.rookie.model.ExamineInternshipGrade">
+        SELECT examine_id AS examineId,  staff_code AS staffCode, pid, creation_id AS creationId,internship_type AS internshipType, line_id AS lineId, internship_comment AS internshipComment, comment, examine_type_id AS examineTypeId,
+        examine_grade AS examineGrade, count_num AS countNum, reason, is_re_examine AS isReExamine, create_code AS createCode, create_date AS createDate, update_code AS updateCode, update_date AS update_date, status
+        FROM rookie_training_system.examine_internship_grade
+        <where>
+            staff_code = #{studentStaffCode}
+            AND creation_id = #{creationId}
+            AND internship_comment != ''
+            AND comment != ''
+            AND status = 1
+        </where>
+    </select>
+
+    <select id="selectSameInternshipGradeDate" resultType="com.tsbg.mis.rookie.model.ExamineInternshipGrade">
+        SELECT examine_id AS examineId,  staff_code AS staffCode, pid, creation_id AS creationId,internship_type AS internshipType, line_id AS lineId, internship_comment AS internshipComment, comment, examine_type_id AS examineTypeId,
+        examine_grade AS examineGrade, count_num AS countNum, reason, is_re_examine AS isReExamine, create_code AS createCode, create_date AS createDate, update_code AS updateCode, update_date AS update_date, status
+        FROM rookie_training_system.examine_internship_grade
+        <where>
+            staff_code = #{studentStaffCode}
+            AND creation_id = #{creationId}
+            AND examine_type_id IN (3,8,9,10,11,12,13,14,15,16,17)
+            AND is_re_examine = #{isReExamine}
+            AND status = 1
+        </where>
+    </select>
+
+    <select id="selectSameExamineInternshipGradeDate" resultType="com.tsbg.mis.rookie.model.ExamineInternshipGrade">
+        SELECT examine_id AS examineId,  staff_code AS staffCode, pid, creation_id AS creationId,internship_type AS internshipType, line_id AS lineId, internship_comment AS internshipComment, comment, examine_type_id AS examineTypeId,
+        examine_grade AS examineGrade, count_num AS countNum, reason, is_re_examine AS isReExamine, create_code AS createCode, create_date AS createDate, update_code AS updateCode, update_date AS update_date, status
+        FROM rookie_training_system.examine_internship_grade
+        <where>
+            staff_code = #{studentStaffCode}
+            AND creation_id = #{creationId}
+            AND examine_type_id IN (2,6,7)
+            AND internship_comment is null
+            AND comment is null
+            AND status = 1
+        </where>
+    </select>
+    <select id="selectSameAttendanceDate" resultType="com.tsbg.mis.rookie.model.ExamineInternshipGrade">
+        SELECT examine_id AS examineId,  staff_code AS staffCode, pid, creation_id AS creationId,internship_type AS internshipType, line_id AS lineId, internship_comment AS internshipComment, comment, examine_type_id AS examineTypeId,
+        examine_grade AS examineGrade, count_num AS countNum, reason, is_re_examine AS isReExamine, create_code AS createCode, create_date AS createDate, update_code AS updateCode, update_date AS update_date, status
+        FROM rookie_training_system.examine_internship_grade
+        <where>
+            staff_code = #{studentStaffCode}
+            AND creation_id = #{creationId}
+            AND examine_type_id IN (4,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35)
+            AND internship_comment is null
+            AND comment is null
+            AND status = 1
+        </where>
+    </select>
+    <select id="getStaffNameByStaffCode"  resultType="java.lang.String">
+        SELECT a.staff_name staffName
+        FROM rookie_training_system.class_student_info a
+        WHERE a.staff_code = #{staffCode}
+    </select>
+    <select id="selectNewStudents" resultType="com.tsbg.mis.rookie.vo.ExamineStudentVo">
+        SELECT a.staff_code AS staffCode,a.staff_name AS staffName
+        FROM rookie_training_system.class_student_info  a
+        WHERE
+        a.status = 1
+        AND a.class_period = (
+            SELECT max(class_period) FROM rookie_training_system.class_student_info
+
+        )
+
+    </select>
+    <insert id="insertExamineByLinneGroupLeader" parameterType="com.tsbg.mis.rookie.model.ExamineInternshipGrade" keyProperty="examineId" useGeneratedKeys="true">
+        insert into rookie_training_system.examine_internship_grade(staff_code, pid, creation_id,internship_type, line_id,
+        internship_comment, comment, examine_type_id, examine_grade, count_num, reason, is_re_examine, create_code,
+        create_date, update_code, update_date, status)
+        values (#{staffCode}, #{pid},#{creationId}, #{internshipType}, #{lineId}, #{internshipComment}, #{comment}, #{examineTypeId},
+        #{examineGrade}, #{countNum}, #{reason}, #{isReExamine}, #{createCode}, #{createDate}, #{updateCode},
+        #{updateDate}, #{status})
+    </insert>
+
+    <insert id="insertAttendaceRewardsAndPunishments" parameterType="com.tsbg.mis.rookie.model.ExamineInternshipGrade" keyProperty="examineId" useGeneratedKeys="true">
+        insert into rookie_training_system.examine_internship_grade(staff_code, pid,creation_id, internship_type, line_id,
+        internship_comment, comment, examine_type_id, examine_grade, count_num, reason, is_re_examine, create_code,
+        create_date, update_code, update_date, status)
+        values (#{staffCode}, #{pid},#{creationId}, #{internshipType}, #{lineId}, #{internshipComment}, #{comment}, #{examineTypeId},
+        #{examineGrade}, #{countNum}, #{reason}, #{isReExamine}, #{createCode}, #{createDate}, #{updateCode},
+        #{updateDate}, #{status})
+    </insert>
+    <update id="updateSameCommentDate" parameterType="com.tsbg.mis.rookie.model.ExamineInternshipGrade" >
+        update rookie_training_system.examine_internship_grade
+        <set>
+            status = 0,
+            update_date = #{updateDate},
+            update_code = #{updateCode}
+        </set>
+        <where>
+            staff_code = #{staffCode}
+            AND creation_id = #{creationId}
+            AND internship_comment != ''
+            AND comment != ''
+            AND status = 1
+        </where>
+    </update>
+
+    <update id="updateSameInternshipGradeDate" parameterType="com.tsbg.mis.rookie.model.ExamineInternshipGrade" >
+        update rookie_training_system.examine_internship_grade
+        <set>
+            status = 0,
+            update_date = #{updateDate},
+            update_code = #{updateCode}
+        </set>
+        <where>
+            staff_code = #{staffCode}
+            AND creation_id = #{creationId}
+            AND examine_type_id IN (3,8,9,10,11,12,13,14,15,16,17)
+            AND is_re_examine = #{isReExamine}
+            AND status = 1
+        </where>
+    </update>
+
+    <update id="updateSameExamineInternshipGradeDate" parameterType="com.tsbg.mis.rookie.model.ExamineInternshipGrade" >
+        update rookie_training_system.examine_internship_grade
+        <set>
+            status = 0,
+            update_date = #{updateDate},
+            update_code = #{updateCode}
+        </set>
+        <where>
+            staff_code = #{staffCode}
+            AND creation_id = #{creationId}
+            AND examine_type_id IN (2,6,7)
+            AND internship_comment is null
+            AND comment is null
+            AND is_re_examine = #{isReExamine}
+            AND status = 1
+        </where>
+    </update>
+
+    <update id="updateSameAttendanceDate" parameterType="com.tsbg.mis.rookie.model.ExamineInternshipGrade" >
+        update rookie_training_system.examine_internship_grade
+        <set>
+            status = 0,
+            update_date = #{updateDate},
+            update_code = #{updateCode}
+        </set>
+        <where>
+            staff_code = #{staffCode}
+            AND creation_id = #{creationId}
+            AND examine_type_id IN (4,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35)
+            AND internship_comment is null
+            AND comment is null
+            AND is_re_examine = #{isReExamine}
+            AND status = 1
+        </where>
+    </update>
+
+
+
+</mapper>

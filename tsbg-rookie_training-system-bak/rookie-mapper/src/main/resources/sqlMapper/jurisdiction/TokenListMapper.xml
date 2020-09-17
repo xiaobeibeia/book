@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tsbg.mis.dao.jurisdiction.TokenListDao" >
+  <resultMap id="BaseResultMap" type="com.tsbg.mis.jurisdiction.model.TokenList" >
+    <id column="token_id" property="tokenId" jdbcType="BIGINT" />
+    <result column="token_code" property="tokenCode" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    token_id, token_code, status, create_time
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from token_list
+    where token_id = #{tokenId,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from token_list
+    where token_id = #{tokenId,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.tsbg.mis.jurisdiction.model.TokenList" >
+    insert into token_list (token_id, token_code, status, 
+      create_time)
+    values (#{tokenId,jdbcType=BIGINT}, #{tokenCode,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.tsbg.mis.jurisdiction.model.TokenList" >
+    insert into token_list
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="tokenId != null" >
+        token_id,
+      </if>
+      <if test="tokenCode != null" >
+        token_code,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="tokenId != null" >
+        #{tokenId,jdbcType=BIGINT},
+      </if>
+      <if test="tokenCode != null" >
+        #{tokenCode,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.tsbg.mis.jurisdiction.model.TokenList" >
+    update token_list
+    <set >
+      <if test="tokenCode != null" >
+        token_code = #{tokenCode,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where token_id = #{tokenId,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.tsbg.mis.jurisdiction.model.TokenList" >
+    update token_list
+    set token_code = #{tokenCode,jdbcType=VARCHAR},
+      status = #{status,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where token_id = #{tokenId,jdbcType=BIGINT}
+  </update>
+  <update id="updateStatusByTokenCode" parameterType="String" >
+    UPDATE token_list AS a SET a.`status`=0
+    WHERE
+    a.`token_code`=#{token,jdbcType=VARCHAR};
+  </update>
+  <select id="selectCountFromTokenList" parameterType="String" resultType="int">
+    SELECT COUNT(0) FROM token_list AS a WHERE a.`token_code`= #{token,jdbcType=VARCHAR}
+    AND a.`status`=0;
+  </select>
+</mapper>

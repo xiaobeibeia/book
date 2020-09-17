@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tsbg.mis.dao.jurisdiction.RoleAndProJPackageDao" >
+
+    <select id="selectRoleAndProj2" resultType="com.tsbg.mis.jurisdiction.bag.RoleAndProJPackage">
+        SELECT r.`role_id` AS roleId,r.`role_name` AS roleName,r.`role_describe` AS roleDescribe,r.`proj_id` AS projId,p.`project_name` AS proName
+        FROM user_database.role_list AS r
+        LEFT JOIN common_database.project_list AS p ON r.`proj_id`=p.`proj_id`
+        WHERE p.proj_id = 7
+    </select>
+</mapper>

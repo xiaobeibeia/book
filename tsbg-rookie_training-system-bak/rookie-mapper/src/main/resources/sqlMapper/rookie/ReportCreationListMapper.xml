@@ -1,0 +1,1270 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tsbg.mis.dao.rookie.ReportCreationListDao">
+    <resultMap id="StateListMap" type="com.tsbg.mis.rookie.model.StateList"/>
+    <resultMap id="TypeListMap" type="com.tsbg.mis.rookie.model.TypeList"/>
+    <resultMap id="ReportCreationListMap" type="com.tsbg.mis.rookie.model.ReportCreationList"/>
+    <resultMap id="ProductionLineListMap" type="com.tsbg.mis.rookie.model.ProductionLineList"/>
+    <resultMap id="ReportProductionListMap" type="com.tsbg.mis.rookie.model.ReportProductionList"/>
+    <resultMap id="RookieApprovalInfoMap" type="com.tsbg.mis.rookie.model.RookieApprovalInfo"/>
+    <resultMap id="ReportDepartListMap" type="com.tsbg.mis.rookie.model.ReportDepartList"/>
+    <resultMap id="ReportProductionProposalListMap" type="com.tsbg.mis.rookie.model.ReportProductionProposalList"/>
+    <resultMap id="ReportProductionWeekQuestion" type="com.tsbg.mis.rookie.model.ReportProductionWeekQuestion"/>
+    <resultMap id="DepartTargetListVoMap" type="com.tsbg.mis.rookie.vo.DepartTargetListVo"/>
+    <resultMap id="FileInfoMap" type="com.tsbg.mis.rookie.model.FileInfo"/>
+    <resultMap id="ReportDepartWorkMap" type="com.tsbg.mis.rookie.model.ReportDepartWork"/>
+    <resultMap id="ReportDepartTatgetMap" type="com.tsbg.mis.rookie.model.ReportDepartTarget"/>
+    <resultMap id="DepartTargetResultListMap" type="com.tsbg.mis.rookie.model.DepartTargetResultList"/>
+    <resultMap id="ClassGradeInfoMap" type="com.tsbg.mis.rookie.model.ClassGradeInfo"/>
+    <resultMap id="ClassStudentInfoMap" type="com.tsbg.mis.rookie.model.ClassStudentInfo"/>
+    <resultMap id="DepartTargetListMap" type="com.tsbg.mis.rookie.model.DepartTargetList"/>
+
+    <!--创建报告任务-->
+    <insert id="creationReport" parameterType="com.tsbg.mis.rookie.model.ReportCreationList">
+        insert into `rookie_training_system`.`report_creation_list`
+        (`mission_type`,`mission_name`,`class_period`,`internship_start`,`internship_end`,`mission_start_time`,
+        `mission_end_time`,`report_type`,`default_start_time`,`default_end_time`,`start_time`,`end_time`,`is_enable`,
+        `creator_code`,`create_date`,`update_code`,`update_date`,`status`)
+        values
+        (#{missionType},#{missionName},#{classPeriod},#{internshipStart},#{internshipEnd},#{missionStartTime},
+        #{missionEndTime},#{reportType},#{defaultStartTime},#{defaultEndTime},#{startTime},#{endTime},1,
+        #{creatorCode},now(),#{updateCode},now(),1)
+    </insert>
+
+    <!--查找state_list表-->
+    <select id="selectStateListByTab" resultMap="StateListMap">
+        select `state_id` stateId,`state_name` stateName,`tab`,`remark`,`status`
+        from `rookie_training_system`.`state_list`
+        <where>
+            <if test="tab!=null">
+                and `tab`=#{tab}
+            </if>
+        </where>
+    </select>
+
+    <!--查找type_list-->
+    <select id="selectTypeListByTab" resultMap="TypeListMap">
+        select `type_id` typeId,`type_name` typeName,`pid`,`tab`,`remark`,`status`
+        from `rookie_training_system`.`type_list`
+        <where>
+            <if test="tab!=null">
+                `tab`=#{tab}
+            </if>
+            <if test="pid!=null">
+                and `pid`=#{pid}
+            </if>
+        </where>
+    </select>
+    
+    <!--模糊搜索任务报告-->
+    <select id="fuzzySearchReport" resultMap="ReportCreationListMap" parameterType="com.tsbg.mis.rookie.model.ReportCreationList">
+        select a.`creation_id` creationId,a.`mission_type` missionType,a.`internship_start` internshipStart,a.`internship_end` internshipEnd,
+        a.`mission_start_time` missionStartTime,a.`mission_end_time` missionEndTime,a.`report_type` reportType,a.`default_start_time` defaultStartTime,
+        a.`default_end_time` defaultEndTime,a.`start_time` startTime,a.`end_time` endTime,a.`creator_code` creatorCode,a.`create_date` createDate,
+        a.`update_code` updateCode,a.`update_date` updateDate,a.`status`,b.`type_name` missionTypeName,c.`type_name` reportTypeName,a.`is_enable` isEnable,a.`class_period` classPeriod
+        from `rookie_training_system`.`report_creation_list` a
+        left join `rookie_training_system`.`type_list` b on a.`mission_type` = b.`type_id`
+        left join `rookie_training_system`.`type_list` c on a.`report_type` = c.`type_id`
+        <where>
+            a.`status`=1
+            <if test="isEnable!=null">
+                and a.`is_enable`=#{isEnable}
+            </if>
+            <if test="missionType!=null">
+                and a.`mission_type`=#{missionType}
+            </if>
+            <if test="reportType!=null">
+                and a.`report_type` = #{reportType}
+            </if>
+            <if test="missionStartTime!=null">
+                and a.`mission_start_time` &gt;= #{missionStartTime}
+            </if>
+            <if test="missionEndTime!=null">
+                and a.`mission_end_time` &lt;= #{missionEndTime}
+            </if>
+            <if test="creationId!=null">
+                and a.`creation_id`=#{creationId}
+            </if>
+        </where>
+        order by a.`create_date` DESC
+    </select>
+
+    <!--添加(填写)产线报告-->
+    <insert id="insertLineReport" parameterType="com.tsbg.mis.rookie.model.ReportProductionList" useGeneratedKeys="true" keyProperty="reportId">
+        insert into `rookie_training_system`.`report_production_list`
+        (`staff_code`,`mission_type`,`report_type`,`is_have_problem`,`report_date`,`line_id`,
+        `internship_state`,`stage_remark`,`internship_content`,`question_description`,
+        `internship_harvest`,`question_suggestion`,`improve_category`,`improve_remark`,`file_id`,`state_id`,
+        `mental_state`,`mental_remark`,`attendance`,`create_date`,`update_date`,`status`,`creation_id`)
+        values
+        (#{staffCode},#{missionType},#{reportType},#{isHaveProblem},#{reportDate},#{lineId},
+        #{internshipState},#{stageRemark},#{internshipContent},#{questionDescription},
+        #{internshipHarvest},#{questionSuggestion},#{improveCategory},#{improveRemark},#{fileId},#{stateId},
+        #{mentalState},#{mentalRemark},#{attendance},now(),#{updateDate},1,#{creationId})
+    </insert>
+    <!--添加(填写)部门报告-->
+    <insert id="insertDepartReport" parameterType="com.tsbg.mis.rookie.model.ReportDepartList" useGeneratedKeys="true" keyProperty="reportId">
+        insert into `rookie_training_system`.`report_depart_list`
+        (`creation_id`,`staff_code`,`report_type`,`report_date`,`work_harvest`,`life_harvest`,
+        `work_suggestion`,`create_date`,`update_date`,`state_id`,`status`)
+        values
+        (#{creationId},#{staffCode},#{reportType},#{reportDate},#{workHarvest},#{lifeHarvest},
+        #{workSuggestion},now(),#{updateDate},#{stateId},1)
+    </insert>
+    <!--填写提案改善报告-->
+    <insert id="insertProposalReport" parameterType="com.tsbg.mis.rookie.model.ReportProductionProposalList" useGeneratedKeys="true" keyProperty="proposalId">
+        insert into `rookie_training_system`.`report_production_proposal_list`
+        (`proposal_date`,`staff_code`,`proposal_type`,`proposal_theme`,`analyze_method`,`a_method_remark`,
+        `analyze_content`,`file_id`,`improve_category`,`i_category_remark`,`i_purpose_description`,`improve_method`,
+        `execute_plan`,`performance_description`,`year_cost_saving`,`once_cost_saving`,`cost_saving_reason`,`state_id`,
+        `create_date`,`update_date`,`status`,`creation_id`)
+        values
+        (#{proposalDate},#{staffCode},#{proposalType},#{proposalTheme},#{analyzeMethod},#{aMethodRemark},
+        #{analyzeContent},#{fileId},#{improveCategory},#{iCategoryRemark},#{iPurposeDescription},#{improveMethod},
+        #{executePlan},#{performanceDescription},#{yearCostSaving},#{onceCostSaving},#{costSavingReason},#{stateId},
+        now(),#{updateDate},1,#{creationId})
+    </insert>
+
+    <!--编辑报告任务-->
+    <update id="updateReport" parameterType="com.tsbg.mis.rookie.model.ReportCreationList">
+        update `rookie_training_system`.`report_creation_list`
+        <set>
+            <if test="status!=null">
+                `status`=#{status},
+            </if>
+            <if test="isEnable!=null">
+                `is_enable`=#{isEnable},
+            </if>
+            <if test="missionType!=null">
+                `mission_type`=#{missionType},
+            </if>
+            <if test="internshipStart!=null">
+                `internship_start`=#{internshipStart},
+            </if>
+            <if test="internshipEnd!=null">
+                `internship_end`=#{internshipEnd},
+            </if>
+            <if test="missionStartTime!=null">
+                `mission_start_time`=#{missionStartTime},
+            </if>
+            <if test="missionEndTime!=null">
+                `mission_end_time`=#{missionEndTime},
+            </if>
+            <if test="reportType!=null">
+                `report_type`=#{reportType},
+            </if>
+            <if test="startTime!=null">
+                `start_time`=#{startTime},
+            </if>
+            <if test="endTime!=null">
+                `end_time`=#{endTime},
+            </if>
+            <if test="updateCode!=null">
+                `update_code`=#{updateCode},
+            </if>
+            <if test="updateDate!=null">
+                `update_date`=#{updateDate},
+            </if>
+
+
+            <if test="missionStartTime==null">
+                `mission_start_time`=null,
+            </if>
+            <if test="missionEndTime==null">
+                `mission_end_time`=null,
+            </if>
+            <if test="startTime==null">
+                `start_time`=null,
+            </if>
+            <if test="endTime==null">
+                `end_time`=null,
+            </if>
+        </set>
+        where `creation_id`=#{creationId}
+    </update>
+
+    <!--查出当前学生所有未填的报告任务-->
+    <select id="selectReportNotFillIn" resultMap="ReportCreationListMap" parameterType="java.lang.String">
+        select a.`creation_id` creationId,a.`mission_type` missionType,a.`report_type` reportType,a.`mission_start_time` missionStartTime,a.`mission_end_time` missionEndTime,a.`start_time` startTime,a.`end_time` endTime,
+        b.`type_name` missionTypeName,c.`type_name` reportTypeName,a.`is_enable` isEnable
+        from `rookie_training_system`.`report_creation_list` a
+        left join `rookie_training_system`.`type_list` b on a.`mission_type` = b.`type_id`
+        left join `rookie_training_system`.`type_list` c on a.`report_type` = c.`type_id`
+        <where>
+            a.`status` = 1 and a.`mission_type` in (7,8)
+            and a.`creation_id` not in (select `creation_id` from `rookie_training_system`.`report_production_list` where `status`=1 and `staff_code`=#{staffCode})
+            and a.`creation_id` not in (select `creation_id` from `rookie_training_system`.`report_depart_list` where `status`=1 and `staff_code`=#{staffCode})
+            and a.`creation_id` not in (select `creation_id` from `rookie_training_system`.`report_production_proposal_list` where `status`=1 and `staff_code`=#{staffCode})
+        </where>
+        order by a.`mission_start_time`
+    </select>
+    <!--查出当前学生所有产线实习已填(草稿，待审，驳回都算)的报告任务-->
+    <select id="selectReportFillInProductionList" resultMap="ReportCreationListMap">
+        select a.`creation_id` creationId,a.`mission_type` missionType,a.`report_type` reportType,a.`state_id` stateId,b.`mission_start_time` missionStartTime,b.`mission_end_time` missionEndTime,b.`start_time` startTime,b.`end_time` endTime,c.`state_name` stateName,
+        a.`report_id` reportId,d.`type_name` missionTypeName,e.`type_name` reportTypeName,b.`is_enable` isEnable
+        from `rookie_training_system`.`report_production_list` a
+        left join `rookie_training_system`.`report_creation_list` b on a.`creation_id`=b.`creation_id`
+        left join `rookie_training_system`.`state_list` c on a.`state_id`=c.`state_id`
+        left join `rookie_training_system`.`type_list` d on a.`mission_type` = d.`type_id`
+        left join `rookie_training_system`.`type_list` e on a.`report_type` = e.`type_id`
+        <where>
+            a.`status`=1
+            <if test="staffCode!=null and staffCode!=''">
+                and a.`staff_code`=#{staffCode}
+            </if>
+        </where>
+        order by b.`mission_start_time`
+    </select>
+    <!--查出当前学生所有部门实习已填(草稿，待审，驳回都算)的报告任务-->
+    <select id="selectReportFillInDepart" resultMap="ReportCreationListMap">
+        select a.`creation_id` creationId,b.`mission_type` missionType,a.`report_type` reportType,a.`state_id` stateId,c.`state_name` stateName,b.`mission_start_time` missionStartTime,b.`mission_end_time` missionEndTime,b.`start_time` startTime,b.`end_time` endTime,
+        a.`report_id` reportId,d.`type_name` missionTypeName,e.`type_name` reportTypeName,b.`is_enable` isEnable
+        from `rookie_training_system`.`report_depart_list` a
+        left join `rookie_training_system`.`report_creation_list` b on a.`creation_id`=b.`creation_id`
+        left join `rookie_training_system`.`state_list` c on a.`state_id`=c.`state_id`
+        left join `rookie_training_system`.`type_list` d on b.`mission_type` = d.`type_id`
+        left join `rookie_training_system`.`type_list` e on a.`report_type` = e.`type_id`
+        <where>
+            a.`status`=1
+            <if test="staffCode!=null and staffCode!=''">
+                and a.`staff_code`=#{staffCode}
+            </if>
+        </where>
+        order by b.`mission_start_time`
+    </select>
+    <!--查詢當前學生提案改善表已填的報告任務-->
+    <select id="selectReportFillInProposal" resultMap="ReportCreationListMap">
+        select a.`creation_id` creationId,a.`report_type` reportType,a.`state_id` stateId,c.`state_name` stateName,b.`mission_start_time` missionStartTime,
+        b.`mission_end_time` missionEndTime,b.`start_time` startTime,b.`end_time` endTime,a.`proposal_id` reportId,e.`type_name` reportTypeName,b.`is_enable` isEnable
+        from `rookie_training_system`.`report_production_proposal_list` a
+        left join `rookie_training_system`.`report_creation_list` b on a.`creation_id`=b.`creation_id`
+        left join `rookie_training_system`.`state_list` c on a.`state_id`=c.`state_id`
+        left join `rookie_training_system`.`type_list` e on a.`report_type` = e.`type_id`
+        <where>
+            a.`status`=1
+            <if test="staffCode!=null and staffCode!=''">
+                and a.`staff_code`=#{staffCode}
+            </if>
+        </where>
+    </select>
+
+    <!--把小于当前日期的所有有效的报告任务都设为过期(不启用)-->
+    <update id="updateCreationIsEnableWhereOverdue">
+        update `rookie_training_system`.`report_creation_list`
+        <set>
+            `is_enable`=0
+        </set>
+        where `is_enable` = 1 and `end_time` &lt; #{now} and `status`=1
+    </update>
+
+    <!--查找当前学生当前时间在哪条产线-->
+    <select id="selectWhichLine" resultMap="ProductionLineListMap">
+        select a.`line_id` lineId,a.`line_name` lineName
+        from `production_line_list` a
+        left join `production_line_student_list` b on a.`line_id`=b.`line_id`
+        left join `class_student_info` c on b.`staff_code`=c.`staff_code`
+        <where>
+            a.`status`=1 and b.`status`=1 and c.`status`=1
+            <if test="staffCode!=null and staffCode !=''">
+                and c.`staff_code`= #{staffCode}
+            </if>
+            <if test="missionEndTime !=null">
+                and b.`internship_start_date` &lt;= #{missionEndTime} and b.`internship_end_date` &gt;= #{missionEndTime}
+            </if>
+        </where>
+    </select>
+
+    <!--查询已填的产线报告的详细信息-->
+    <select id="selectProductionReportInfo" resultMap="ReportProductionListMap">
+        select a.`report_id` reportId,a.`creation_id` creationId,a.`staff_code` staffCode,a.`mission_type` missionType,
+        a.`report_type` reportType,a.`is_have_problem` isHaveProblem,a.`report_date` reportDate,a.`line_id` lineId,
+        a.`internship_state` internshipState,a.`stage_remark` stageRemark,a.`internship_content` internshipContent,
+        a.`question_description` questionDescription,a.`internship_harvest` internshipHarvest,
+        a.`question_suggestion` questionSuggestion,a.`improve_category` improveCategory,a.`improve_remark` improveRemark,a.`file_id` fileId,
+        a.`state_id` stateId,a.`mental_state` mentalState,a.`mental_remark` mentalRemark,a.`attendance`,a.`create_date` createDate,
+        a.`update_date` updateDate,a.`status`,b.`line_name` lineName,c.`type_name` missionTypeName,d.`type_name` reportTypeName,e.`staff_name` staffName,
+        f.`mission_start_time` missionStartTime,f.`mission_end_time` missionEndTime
+        from `rookie_training_system`.`report_production_list` a
+        left join `rookie_training_system`.`production_line_list` b on a.`line_id`=b.`line_id`
+        left join `rookie_training_system`.`type_list` c on a.`mission_type` = c.`type_id`
+        left join `rookie_training_system`.`type_list` d on a.`report_type` = d.`type_id`
+        left join `rookie_training_system`.`class_student_info` e on a.`staff_code`=e.`staff_code`
+        left join `rookie_training_system`.`report_creation_list` f on f.`creation_id`=a.`creation_id`
+        <where>
+            a.`status` = 1
+            <if test="reportId!=null">
+                and a.`report_id`=#{reportId}
+            </if>
+        </where>
+    </select>
+    <!--查询已填的部门实习报告的详细信息-->
+    <select id="selectDepartReportInfo" resultMap="ReportDepartListMap">
+        select a.`report_id` reportId,a.`creation_id` creationId,a.`staff_code` staffCode,b.`mission_type` missionType,
+        a.`report_type` reportType,a.`report_date` reportDate,a.`work_harvest` workHarvest,a.`life_harvest` lifeHarvest,a.`work_suggestion` workSuggestion,
+        a.`create_date` createDate,a.`update_date` updateDate,a.`state_id` stateId,a.`status`,
+        c.`type_name` missionTypeName,d.`type_name` reportTypeName,e.`staff_name` staffName
+        from `rookie_training_system`.`report_depart_list` a
+        left join `rookie_training_system`.`report_creation_list` b on a.`creation_id`=b.`creation_id`
+        left join `rookie_training_system`.`type_list` c on b.`mission_type` = c.`type_id`
+        left join `rookie_training_system`.`type_list` d on a.`report_type` = d.`type_id`
+        left join `rookie_training_system`.`class_student_info` e on a.`staff_code` = e.`staff_code`
+        <where>
+            a.`status` = 1
+            <if test="reportId!=null">
+                and a.`report_id`=#{reportId}
+            </if>
+        </where>
+    </select>
+    <!--查询已填的提案改善报告的详细信息-->
+    <select id="selectProposalReportInfo" resultMap="ReportProductionProposalListMap">
+        select a.`proposal_id` proposalId,a.`report_type` reportType,a.`proposal_date` proposalDate,a.`staff_code` staffCode,
+        a.`proposal_type` proposalType,a.`proposal_theme` proposalTheme,a.`analyze_method` analyzeMethod,a.`a_method_remark` aMethodRemark,
+        a.`analyze_content` analyzeContent,a.`file_id` fileId,a.`improve_category` improveCategory,a.`i_category_remark` iCategoryRemark,
+        a.`i_purpose_description` iPurposeDescription,a.`improve_method` improveMethod,a.`execute_plan` executePlan,a.`performance_description` performanceDescription,
+        a.`year_cost_saving` yearCostSaving,a.`once_cost_saving` onceCostSaving,a.`cost_saving_reason` costSavingReason,a.`state_id` stateId,
+        a.`create_date` createDate,a.`update_date` updateDate,a.`status`,a.`proposal_id` reportId,d.`type_name` reportTypeName,a.`creation_id` creationId,e.`staff_name` staffName
+        from `rookie_training_system`.`report_production_proposal_list` a
+        left join `rookie_training_system`.`type_list` d on a.`report_type` = d.`type_id`
+        left join `rookie_training_system`.`class_student_info` e on a.`staff_code` = e.`staff_code`
+        <where>
+            a.`status`=1
+            <if test="reportId!=null">
+                and a.`proposal_id`=#{reportId}
+            </if>
+        </where>
+    </select>
+    <!--查询评语和评分-->
+    <select id="selectApprovalInfo" resultMap="RookieApprovalInfoMap">
+        select a.`rookie_approval_id` rookieApprovalId,a.`signed_date` signedDate,a.`business_id` businessId,a.`node_id` nodeId,
+        a.`node_name` nodeName,a.`approve_staff_code` approveStaffCode,a.`approve_staff_name` approveStaffName,a.`approve_staff_mail` approveStaffMail,
+        a.`approve_sequence` approveSequence,a.`approve_opinion` approveOpinion,a.`grade`,a.`is_pass` isPass,a.`proj_id` projId,
+        a.`invest_table_name` investTableName,a.`invest_field_name` investFieldName,a.`invest_field_value` investFieldValue,a.`status`
+        from `rookie_training_system`.`rookie_approval_info` a
+        left join `rookie_training_system`.`report_production_list` b on a.`invest_field_value`=b.`report_id`
+        <where>
+            a.`status`=1 and a.`invest_field_name`='report_id'
+            <if test="investTableName!=null and investTableName!=''">
+                and a.`invest_table_name`=#{investTableName}
+            </if>
+            <if test="investFieldValue!=null and investFieldValue!=''">
+                and a.`invest_field_value`=#{investFieldValue}
+            </if>
+            <if test="reportType!=null">
+                and b.`report_type`=#{reportType}
+            </if>
+        </where>
+    </select>
+
+    <!--编辑已填写的产线报告-->
+    <update id="updateReportByReportId" parameterType="com.tsbg.mis.rookie.model.ReportProductionList">
+        update `rookie_training_system`.`report_production_list`
+        <set>
+            <if test="isHaveProblem!=null">
+                `is_have_problem`=#{isHaveProblem},
+            </if>
+            <if test="internshipState!=null">
+                `internship_state`=#{internshipState},
+            </if>
+            <if test="stageRemark!=null and stageRemark!=''">
+                `stage_remark`=#{stageRemark},
+            </if>
+            <if test="internshipContent!=null and internshipContent!=''">
+                `internship_content`=#{internshipContent},
+            </if>
+            <if test="questionDescription!=null and questionDescription!=''">
+                `question_description`=#{questionDescription},
+            </if>
+            <if test="internshipHarvest!=null and internshipHarvest!=''">
+                `internship_harvest`=#{internshipHarvest},
+            </if>
+            <if test="questionSuggestion!=null and questionSuggestion!=''">
+                `question_suggestion`=#{questionSuggestion},
+            </if>
+            <if test="improveCategory!=null and improveCategory!=''">
+                `improve_category`=#{improveCategory},
+            </if>
+            <if test="improveRemark!=null and improveRemark!=''">
+                `improve_remark`=#{improveRemark},
+            </if>
+            <if test="fileId!=null">
+                `file_id`=#{fileId},
+            </if>
+            <if test="mentalState!=null and mentalState!=''">
+                `mental_state`=#{mentalState},
+            </if>
+            <if test="mentalRemark!=null and mentalRemark!=''">
+                `mental_remark`=#{mentalRemark},
+            </if>
+            <if test="attendance!=null and attendance!=''">
+                `attendance`=#{attendance},
+            </if>
+            <if test="updateDate!=null">
+                `update_date`=#{updateDate},
+            </if>
+            <if test="status!=null">
+                `status`=#{status}
+            </if>
+        </set>
+        <where>
+            <if test="reportId!=null">
+                `report_id`=#{reportId}
+            </if>
+            <if test="lineId!=null">
+                and `line_id`=#{lineId}
+            </if>
+        </where>
+    </update>
+
+    <!--添加问题与建议-->
+    <insert id="insertProductionQuestion" parameterType="com.tsbg.mis.rookie.model.ReportProductionWeekQuestion">
+        insert into `rookie_training_system`.`report_production_week_question`
+        (`report_id`,`question_description`,`question_suggestion`,`status`)
+        values
+        (#{reportId},#{questionDescription},#{questionSuggestion},1)
+    </insert>
+
+    <!--查找对应的问题与建议-->
+    <select id="selectProductionQuestion" resultMap="ReportProductionWeekQuestion">
+        select a.`question_id` questionId,a.`report_id` reportId,a.`question_description` questionDescription,
+        a.`question_suggestion` questionSuggestion,a.`status`
+        from `rookie_training_system`.`report_production_week_question` a
+        <where>
+            a.`status`=1
+            <if test="reportId!=null">
+                and a.`report_id`=#{reportId}
+            </if>
+        </where>
+    </select>
+
+    <!--部门报告新增工作信息-->
+    <insert id="insertDepartWork" parameterType="com.tsbg.mis.rookie.model.ReportDepartWork" keyProperty="workId" useGeneratedKeys="true">
+        insert into `rookie_training_system`.`report_depart_work`
+        (`tab`,`report_id`,`work_name`,`work_content`,`fulfillment_of_schedule`,`total_time`,`finish_proof`,`proof_file_id`,
+        `unfinished_reason`,`create_date`,`update_date`,`status`,`target_id`,`is_continue`,`pid`,`to_do_work`,`next_week_work`)
+        values
+        (#{tab},#{reportId},#{workName},#{workContent},#{fulfillmentOfSchedule},#{totalTime},#{finishProof},#{proofFileId},
+        #{unfinishedReason},now(),#{updateDate},1,#{targetId},#{isContinue},#{pid},#{toDoWork},#{nextWeekWork})
+    </insert>
+
+    <!--月報時查詢週報的評價-->
+    <select id="selectWeekApprovalInfo" resultMap="RookieApprovalInfoMap">
+        SELECT
+        a.`rookie_approval_id` rookieApprovalId,
+        a.`signed_date` signedDate,
+        a.`business_id` businessId,
+        a.`node_id` nodeId,
+        a.`node_name` nodeName,
+        a.`approve_staff_code` approveStaffCode,
+        a.`approve_staff_name` approveStaffName,
+        a.`approve_staff_mail` approveStaffMail,
+        a.`approve_sequence` approveSequence,
+        a.`approve_opinion` approveOpinion,
+        a.`grade`,
+        a.`is_pass` isPass,
+        a.`proj_id` projId,
+        a.`invest_table_name` investTableName,
+        a.`invest_field_name` investFieldName,
+        a.`invest_field_value` investFieldValue,
+        a.`status`,
+        c.`mission_start_time` missionStartTime,
+        c.`mission_end_time` missionEndTime
+        FROM
+        `rookie_training_system`.`rookie_approval_info` a
+        LEFT JOIN `rookie_training_system`.`report_production_list` b ON a.`invest_field_value` = b.`report_id`
+        LEFT JOIN `rookie_training_system`.`report_creation_list` c ON c.`creation_id` = b.`creation_id`
+        <where>
+            a.is_pass in (0,1)
+            <if test="reportType!=null">
+                and b.`report_type`=#{reportType}
+            </if>
+            <if test="staffCode!=null and staffCode!=''">
+                and b.`staff_code`=#{staffCode}
+            </if>
+            <if test="creationId!=null">
+                and c.mission_start_time &gt;= (
+                select mission_start_time from `rookie_training_system`.`report_creation_list` where creation_id = #{creationId})
+                and c.mission_end_time &lt;= (
+                select mission_end_time from `rookie_training_system`.`report_creation_list` where creation_id = #{creationId})
+            </if>
+            <if test="reportId!=null">
+                and c.mission_start_time &gt;= (
+                select mission_start_time from `rookie_training_system`.`report_creation_list` d
+                left join `rookie_training_system`.`report_production_list` e on d.`creation_id`=e.`creation_id` where e.`report_id`=#{reportId})
+
+                and c.mission_end_time &lt;= (
+                select mission_end_time from `rookie_training_system`.`report_creation_list` d
+                left join `rookie_training_system`.`report_production_list` e on d.`creation_id`=e.`creation_id` where e.`report_id`=#{reportId})
+            </if>
+        </where>
+    </select>
+
+    <!--查出这个学生底下有哪些产线报告-->
+    <select id="selectProductionReportIdByStaffCode" resultType="java.lang.Integer">
+        select `report_id`
+        from `rookie_training_system`.`report_production_list`
+        <where>
+            `status`=1
+            <if test="staffCode!=null and staffCode!=''">
+                and `staff_code`=#{staffCode}
+            </if>
+        </where>
+    </select>
+    <!--查询这个学生底下有哪些部门报告-->
+    <select id="selectDepartReportIdByStaffCode" resultType="java.lang.Integer">
+        select `report_id`
+        from `rookie_training_system`.`report_depart_list`
+        <where>
+            `status`=1
+            <if test="staffCode!=null and staffCode!=''">
+                and `staff_code`=#{staffCode}
+            </if>
+        </where>
+    </select>
+
+    <!--以下为删除相关-↓-->
+    <!--删除产线实习报告-->
+    <update id="deleteLineReport">
+        update `rookie_training_system`.`report_production_list`
+        <set>
+            `status` = 0
+        </set>
+        <where>
+            <if test="staffCode!=null and staffCode!=''">
+                `staff_code` = #{staffCode}
+            </if>
+        </where>
+    </update>
+    <!--删除问题建议-->
+    <update id="deleteWeekQuestionByReportId">
+        update `rookie_training_system`.`report_production_week_question`
+        set `status` = 0
+        <where>
+            `status`=1
+            <if test="reportId!=null">
+                and `report_id`=#{reportId}
+            </if>
+        </where>
+    </update>
+    <!--删除提案改善表-->
+    <update id="deleteProposalReport">
+        update `rookie_training_system`.`report_production_proposal_list`
+        <set>
+            `status`=0
+        </set>
+        <where>
+            <if test="staffCode!=null and staffCode!=''">
+                `staff_code`=#{staffCode}
+            </if>
+        </where>
+    </update>
+    <!--删除部门报告表-->
+    <update id="deleteDepartReport">
+        update `rookie_training_system`.`report_depart_list`
+        <set>
+            `status`=0
+        </set>
+        <where>
+            <if test="staffCode!=null and staffCode!=''">
+                `staff_code`=#{staffCode}
+            </if>
+        </where>
+    </update>
+    <!--删除部门工作信息表-->
+    <update id="deleteDepartWork">
+        update `rookie_training_system`.`report_depart_work`
+        <set>
+            `status`=0
+        </set>
+        <where>
+            <if test="reportId!=null">
+                `report_id`=#{reportId}
+            </if>
+        </where>
+    </update>
+    <!--删除部门目标中间表-->
+    <update id="deleteReportDepartTarget">
+        update `rookie_training_system`.`report_depart_target`
+        <set>
+            `status`=0
+        </set>
+        <where>
+            <if test="reportId!=null">
+                `report_id`=#{reportId}
+            </if>
+        </where>
+    </update>
+    <!--刪除學生的角色(is_lock=0(停用))-->
+    <update id="deleteStaffRole">
+        update `rookie_training_system`.`user_role`
+        <set>
+            is_lock = 0
+        </set>
+        <where>
+            <if test="staffCode!=null and staffCode!=''">
+                `user_id`=(select `user_id` from `rookie_training_system`.`user_info` where `staff_code`=#{staffCode})
+            </if>
+        </where>
+    </update>
+
+    <!--查找产线实习时间最早的开始时间-->
+    <select id="selectStartTimeInLine" resultType="java.util.Date">
+        select `internship_start_date`
+        from `rookie_training_system`.`production_line_student_list`
+        order by `internship_start_date`
+        limit 1
+    </select>
+    <!--查出产线实习最晚的结束时间-->
+    <select id="selectEndTimeInLine" resultType="java.util.Date">
+        select `internship_end_date`
+        from `rookie_training_system`.`production_line_student_list`
+        order by `internship_end_date` DESC
+        limit 1
+    </select>
+
+    <!--编辑提案改善类报告-->
+    <update id="updateProposalReport" parameterType="com.tsbg.mis.rookie.model.ReportProductionProposalList">
+        update `rookie_training_system`.`report_production_proposal_list`
+        <set>
+            <if test="proposalDate!=null">
+                `proposal_date`=#{proposalDate},
+            </if>
+            <if test="proposalType!=null and proposalType!=''">
+                `proposal_type`=#{proposalType},
+            </if>
+            <if test="proposalTheme!=null and proposalTheme!=''">
+                `proposal_theme`=#{proposalTheme},
+            </if>
+            <if test="analyzeMethod!=null and analyzeMethod!=''">
+                `analyze_method`=#{analyzeMethod},
+            </if>
+            <if test="aMethodRemark!=null and aMethodRemark!=''">
+                `a_method_remark`=#{aMethodRemark},
+            </if>
+            <if test="analyzeContent!=null and analyzeContent!=''">
+                `analyze_content`=#{analyzeContent},
+            </if>
+            <if test="fileId!=null">
+                `file_id`=#{fileId},
+            </if>
+            <if test="improveCategory!=null and improveCategory!=''">
+                `improve_category`=#{improveCategory},
+            </if>
+            <if test="iCategoryRemark!=null and iCategoryRemark!=''">
+                `i_category_remark`=#{iCategoryRemark},
+            </if>
+            <if test="iPurposeDescription!=null and iPurposeDescription!=''">
+                `i_purpose_description`=#{iPurposeDescription},
+            </if>
+            <if test="improveMethod!=null and improveMethod!=''">
+                `improve_method`=#{improveMethod},
+            </if>
+            <if test="executePlan!=null and executePlan!=''">
+                `execute_plan` =#{executePlan},
+            </if>
+            <if test="performanceDescription!=null and performanceDescription!=''">
+                `performance_description`=#{performanceDescription},
+            </if>
+            <if test="yearCostSaving!=null">
+                `year_cost_saving`=#{yearCostSaving},
+            </if>
+            <if test="onceCostSaving!=null">
+                `once_cost_saving`=#{onceCostSaving},
+            </if>
+            <if test="costSavingReason!=null and costSavingReason!=''">
+                `cost_saving_reason`=#{costSavingReason},
+            </if>
+            <if test="updateDate!=null">
+                `update_date`=#{updateDate},
+            </if>
+            <if test="status!=null">
+                `status`=#{status}
+            </if>
+        </set>
+        <where>
+            `proposal_id`=#{reportId}
+        </where>
+    </update>
+
+    <!--填寫報告時查詢目標-->
+    <select id="selectTargetInfo" resultMap="DepartTargetListVoMap" parameterType="com.tsbg.mis.rookie.model.ReportCreationList">
+        select a.`target_id` targetId,a.`target_name` targetName,a.`target_content` targetContent
+        from `rookie_training_system`.`depart_target_list` a
+        left join `rookie_training_system`.`depart_target_set_info` c on a.`set_up_id` = c.`set_up_id`
+        <where> a.`status`=1 and c.`status`=1
+        and c.`target_start_date` = #{missionStartTime} and c.`target_end_date` = #{missionEndTime}
+        </where>
+    </select>
+
+    <!--根據targetId查找他的關鍵結果-->
+    <select id="selectTargetResult" parameterType="java.lang.Integer" resultMap="DepartTargetResultListMap">
+        select `result_id` resultId,`target_id` targetId,`result_name` resultName,`result_content` resultContent
+        from `rookie_training_system`.`depart_target_result_list`
+        <where>
+            `target_id`=#{targetId} and `status`=1
+        </where>
+    </select>
+
+    <!--填写报告时新增目标及完成进度-->
+    <insert id="insertReportDepartTarget" parameterType="com.tsbg.mis.rookie.model.ReportDepartTarget">
+        insert into `rookie_training_system`.`report_depart_target`
+        (`target_id`,`report_id`,`fulfillment_of_schedule`,`unfinished_reason`,`create_date`,`update_date`,`status`)
+        values
+        (#{targetId},#{reportId},#{fulfillmentOfSchedule},#{unfinishedReason},now(),now(),1)
+    </insert>
+
+    <!--添加附件-->
+    <insert id="insertFileInfo" parameterType="com.tsbg.mis.rookie.model.FileInfo" useGeneratedKeys="true" keyProperty="fileId">
+        insert into `rookie_training_system`.`file_info`
+        (`file_name`,`disp_name`,`file_path`,`view_path`,`proj_id`,`connect_table_name`,`connect_fields_name`,
+        `connect_fields_value`,`update_user_code`,`last_update_user`,`update_date`,`last_download_user`,`keyword`,`status`,`remark`)
+        values
+        (#{fileName},#{dispName},#{filePath},#{viewPath},#{projId},#{connectTableName},#{connectFieldsName},#{connectFieldsValue},
+        #{updateUserCode},#{lastUpdateUser},now(),#{lastDownloadUser},#{keyword},1,#{remark})
+    </insert>
+
+    <!--查询附件-->
+    <select id="selectFileInfo" parameterType="com.tsbg.mis.rookie.model.FileInfo" resultMap="FileInfoMap">
+        select `file_id` fileId,`file_name` fileName,`disp_name` dispName,`file_path` filePath,`view_path` viewPath,`proj_id` projId,
+        `connect_table_name` connectTableName,`connect_fields_name` connectFieldsName,`connect_fields_value` connectFieldsValue,
+        `update_user_code` updateUserCode,`last_update_user` lastUpdateUzser,`update_date` updateDate,`last_download_user` lastDownloadUser,
+        `keyword`,`status`,`remark`
+        from `rookie_training_system`.`file_info`
+        <where>
+            `status` = 1
+            <if test="connectTableName!=null and connectTableName!=''">
+                and `connect_table_name`=#{connectTableName}
+            </if>
+            <if test="connectFieldsName!=null and connectFieldsName!=''">
+                and `connect_fields_name`=#{connectFieldsName}
+            </if>
+            <if test="connectFieldsValue!=null and connectFieldsValue!=''">
+                and `connect_fields_value`=#{connectFieldsValue}
+            </if>
+            <if test="fileId!=null">
+                and `file_id`=#{fileId}
+            </if>
+        </where>
+    </select>
+    
+    <!--根據creation_id查找missionStart/EndDate-->
+    <select id="selectTimeInCreationList" parameterType="java.lang.Integer" resultMap="ReportCreationListMap">
+        select `mission_start_time` missionStartTime,`mission_end_time` missionEndTime
+        from `rookie_training_system`.`report_creation_list`
+        <where>
+            <if test="creationId!=null">
+                `creation_id`=#{creationId}
+            </if>
+        </where>
+    </select>
+    
+    <!--修改file_info-->
+    <update id="updateFileInfo" parameterType="com.tsbg.mis.rookie.model.FileInfo">
+        update `rookie_training_system`.`file_info`
+        <set>
+            <if test="fileName!=null and fileName!=''">
+                `file_name`=#{fileName},
+            </if>
+            <if test="dispName!=null and dispName!=''">
+                `disp_name`=#{dispName},
+            </if>
+            <if test="filePath!=null and filePath!=''">
+                `file_path`=#{filePath},
+            </if>
+            <if test="viewPath!=null and viewPath!=''">
+                `view_path`=#{viewPath},
+            </if>
+            <if test="projId !=null">
+                `proj_id`=#{projId},
+            </if>
+            <if test="connectTableName!=null and connectTableName!=''">
+                `connect_table_name`=#{connectTableName},
+            </if>
+            <if test="connectFieldsName!=null and connectFieldsName!=''">
+                `connect_fields_name`=#{connectFieldsName},
+            </if>
+            <if test="connectFieldsValue!=null and connectFieldsValue!=''">
+                `connect_fields_value`=#{connectFieldsValue},
+            </if>
+            <if test="updateUserCode!=null and updateUserCode!=''">
+                `update_user_code`=#{updateUserCode},
+            </if>
+            <if test="lastUpdateUser!=null and lastUpdateUser!=''">
+                `last_update_user`=#{lastUpdateUser},
+            </if>
+            <if test="updateDate!=null">
+                `update_date`=#{updateDate},
+            </if>
+            <if test="lastDownloadUser!=null and lastDownloadUser!=''">
+                `last_download_user`=#{lastDownloadUser},
+            </if>
+            <if test="keyword!=null and keyword!=''">
+                `keyword`=#{keyword},
+            </if>
+            <if test="status!=null">
+                `status`=#{status},
+            </if>
+            <if test="remark!=null and remark!=''">
+                `remark`=#{remark}
+            </if>
+        </set>
+        <where>
+            `file_id`=#{fileId}
+        </where>
+    </update>
+
+    <!--刪除這個報告所有的附件(用於編輯)-->
+    <update id="deleteAllFile" parameterType="com.tsbg.mis.rookie.model.FileInfo">
+        update `rookie_training_system`.`file_info`
+        <set>
+            `status`=0
+        </set>
+        <where>
+            <if test="connectTableName!=null and connectTableName!=''">
+                `connect_table_name`=#{connectTableName}
+            </if>
+            <if test="connectFieldsName!=null and connectFieldsName!=''">
+                and `connect_fields_name`=#{connectFieldsName}
+            </if>
+            <if test="connectFieldsValue!=null and connectFieldsValue!=''">
+                and `connect_fields_value`=#{connectFieldsValue}
+            </if>
+        </where>
+    </update>
+
+   <!-- &lt;!&ndash;修改部門實習報告&ndash;&gt;
+    <update id="updateReportDepartList" parameterType="com.tsbg.mis.rookie.model.ReportDepartList">
+        update rookie_training_system.report_depart_list
+        <set >
+            <if test="workHarvest != null and workHarvest != ''" >
+                work_harvest = #{workHarvest},
+            </if>
+            <if test="lifeHarvest != null and lifeHarvest != ''" >
+                life_harvest = #{lifeHarvest},
+            </if>
+            <if test="workSuggestion != null and workSuggestion != ''" >
+                work_suggestion = #{workSuggestion},
+            </if>
+        </set>
+        where report_id = #{reportId};
+    </update>
+
+    <update id="deleteReportDepartWork">
+        update rookie_training_system.report_depart_work AS r
+        <set>
+            r.`status`=0
+        </set>
+        <where>
+            <if test="reportId!=null">
+                r.`report_id`=#{reportId}
+            </if>
+        </where>
+    </update>
+
+    <insert id="addReportDepartWork" useGeneratedKeys="true" keyProperty="workId">
+        INSERT INTO `rookie_training_system`.`report_depart_work`
+        (`tab`,`report_id`,`work_name`,`work_content`,`fulfillment_of_schedule`,`total_time`,`finish_proof`,
+        `proof_file_id`,`unfinished_reason`,`create_date`,`update_date`,`status`)
+        VALUES
+        <foreach collection="reportDepartWorkList" item="item" index="index" separator="," >
+            (#{item.tab},#{item.reportId},#{item.workName},#{item.workContent},#{item.fulfillmentOfSchedule},
+            #{item.totalTime},#{item.finishProof},#{item.proofFileId},#{item.unfinishedReason},now(),now(),1)
+        </foreach>
+    </insert>
+
+    <update id="updateDepartTargetList" parameterType="com.tsbg.mis.rookie.model.DepartTargetList">
+        UPDATE rookie_training_system.depart_target_list AS dl
+        SET
+        <if test="targetContent != null and targetContent != '' ">
+            dl.target_content = #{targetContent}
+        </if>
+        WHERE dl.target_id = #{targetId} AND dl.type_id = #{typeId}
+    </update>
+
+    <update id="updateDepartTargetResultList" parameterType="com.tsbg.mis.rookie.model.DepartTargetResultList">
+        UPDATE rookie_training_system.depart_target_result_list AS dr
+        SET
+        <if test="resultName != null and resultName != '' ">
+            dr.result_name = #{resultName},
+        </if>
+        <if test="resultContent != null and resultContent != '' ">
+            dr.result_content = #{resultContent}
+        </if>
+        WHERE dr.target_id = #{targetId}
+    </update>
+
+    <update id="updateReportDepartTarget" parameterType="com.tsbg.mis.rookie.model.ReportDepartTarget">
+        UPDATE rookie_training_system.report_depart_target AS rd
+        SET
+       <if test="fulfillmentOfSchedule != null and fulfillmentOfSchedule != '' ">
+            rd.fulfillment_of_schedule = #{fulfillmentOfSchedule},
+        </if>
+        <if test="unfinishedReason != null and unfinishedReason != '' ">
+            rd.unfinished_reason = #{unfinishedReason}
+        </if>
+        WHERE rd.report_id = #{reportId}
+    </update>-->
+
+    <!--查出有多少depart_work-->
+    <select id="selectDepartWork" parameterType="java.lang.Integer" resultMap="ReportDepartWorkMap">
+        select `work_id` workId,`pid`,`tab`,`report_id` reportId,`work_name` workName,`target_id` targetId,`work_content` workContent,
+        `fulfillment_of_schedule` fulfillmentOfSchedule,`total_time` totalTime,`finish_proof` finishProof,
+        `proof_file_id` proofFileId,`unfinished_reason` unfinishedReason,`next_week_work` nextWeekWork,`is_continue` isContinue,
+        `create_date` createDate,`update_date` updateDate,`status`
+        from `rookie_training_system`.`report_depart_work`
+        <where>
+            `status`= 1
+            <if test="reportId!=null">
+                and `report_id`=#{reportId}
+            </if>
+        </where>
+    </select>
+
+    <!--查出有多少depart_target-->
+    <select id="selectDepartTarget" resultMap="ReportDepartTatgetMap" parameterType="java.lang.Integer">
+        select `auto_id` autoId,`target_id` targetId,`report_id` reportId,`fulfillment_of_schedule` fulfillmentOfSchedule,
+        `unfinished_reason` unfinishedReason,`create_date` createDate,`update_date` updateDate,`status`
+        from `rookie_training_system`.`report_depart_target`
+        <where>
+            `status`=1
+            <if test="reportId!=null">
+                and `report_id`=#{reportId}
+            </if>
+        </where>
+    </select>
+
+    <!--查找產線週報下的產線日報內容-->
+    <select id="selectDailyByWeek" resultMap="ReportProductionListMap" parameterType="com.tsbg.mis.rookie.model.ReportProductionList">
+        select a.`report_id` reportId,a.`creation_id` creationId,a.`staff_code` staffCode,a.`mission_type` missionType,
+        a.`report_type` reportType,a.`is_have_problem` isHaveProblem,a.`report_date` reportDate,a.`line_id` lineId,
+        a.`internship_state` internshipState,a.`stage_remark` stageRemark,a.`internship_content` internshipContent,
+        a.`question_description` questionDescription,a.`internship_harvest` internshipHarvest,
+        a.`question_suggestion` questionSuggestion,a.`improve_category` improveCategory,a.`improve_remark` improveRemark,a.`file_id` fileId,
+        a.`state_id` stateId,a.`mental_state` mentalState,a.`mental_remark` mentalRemark,a.`attendance`,a.`create_date` createDate,
+        a.`update_date` updateDate,a.`status`,b.`line_name` lineName,c.`type_name` missionTypeName,d.`type_name` reportTypeName,e.`staff_name` staffName,
+        f.`mission_start_time` missionStartTime,f.`mission_end_time` missionEndTime
+        from `rookie_training_system`.`report_production_list` a
+        left join `rookie_training_system`.`production_line_list` b on a.`line_id`=b.`line_id`
+        left join `rookie_training_system`.`type_list` c on a.`mission_type` = c.`type_id`
+        left join `rookie_training_system`.`type_list` d on a.`report_type` = d.`type_id`
+        left join `rookie_training_system`.`class_student_info` e on a.`staff_code`=e.`staff_code`
+        left join `rookie_training_system`.`report_creation_list` f on f.`creation_id`=a.`creation_id`
+        <where>
+            a.`status` = 1 and a.`report_type`=9
+            <if test="missionStartTime!=null and missionEndTime != null">
+                and f.`mission_start_time` &lt;= #{missionEndTime} and f.`mission_end_time` &gt;= #{missionStartTime}
+            </if>
+            <if test="staffCode!=null and staffCode!=''">
+                and a.`staff_code` = #{staffCode}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectEnableReport" resultMap="ReportCreationListMap">
+        SELECT a.mission_type missionType ,a.creation_id creationId ,a.internship_start internshipStart,a.internship_end internshipEnd,a.start_time startTime ,a.end_time endTime, a.is_enable isEnable
+        FROM `rookie_training_system`.`report_creation_list` a
+        WHERE a.is_enable = 1
+        AND a.status = 1
+        AND  a.mission_type = 98
+        order by a.create_date DESC
+        limit 1
+    </select>
+    <update id="deleteFileInfo" parameterType="com.tsbg.mis.rookie.model.FileInfo">
+        update rookie_training_system.file_info
+        <set>
+            status = 0
+        </set>
+        where connect_table_name =#{connectTableName} AND connect_fields_name =#{connectFieldsName} AND connect_fields_value =#{connectFieldsValue}
+    </update>
+    
+    <!--查询届别-->
+    <select id="selectClassPeriodList" resultMap="ClassGradeInfoMap">
+        select distinct `class_period` classPeriod
+        from `rookie_training_system`.`class_grade_info`
+        <where>
+            `status` = 1
+        </where>
+    </select>
+
+    <!--填写报告时查找本週/月目标-->
+    <select id="selectTarget" resultMap="DepartTargetListMap" parameterType="com.tsbg.mis.rookie.model.ReportDepartList">
+        select a.`target_id` targetId,a.`target_num` targetNum,a.`staff_code` staffCode,a.`class_period` classPeriod,a.`type_id` typeId,
+        a.`creation_id` creationId,a.`pid`,a.`target_name` targetName,a.`target_content` targetContent,a.`target_weight` targetWeight,
+        a.`target_start_date` targetStartDate,a.`end_date` endDate,a.`target_end_date` targetEndDate,a.`create_date` createDate,
+        a.`update_date` updateDate,a.`examine_state` examineState,a.`status`
+        from `rookie_training_system`.`depart_target_list` a
+        left join `rookie_training_system`.`report_creation_list` b on a.`creation_id` = b.`creation_id`
+        <where>
+            a.`status` = 1
+            and a.`target_start_date` &lt;= #{missionEndTime}
+            and a.`target_end_date` &gt;= #{missionStartTime}
+            and b.`report_type`=#{reportType}
+            and a.`examine_state` not in (0,3)
+            <if test="staffCode!=null">
+                and a.`target_num` in (select `target_num` from `rookie_training_system`.`depart_target_student` where `staff_code` = #{staffCode})
+            </if>
+        </where>
+    </select>
+    <!--查找下週/下月目標-->
+    <select id="selectNextTarget" parameterType="com.tsbg.mis.rookie.model.ReportDepartList" resultMap="DepartTargetListMap">
+        select a.`target_id` targetId,a.`target_num` targetNum,a.`staff_code` staffCode,a.`class_period` classPeriod,a.`type_id` typeId,
+        a.`creation_id` creationId,a.`pid`,a.`target_name` targetName,a.`target_content` targetContent,a.`target_weight` targetWeight,
+        a.`target_start_date` targetStartDate,a.`end_date` endDate,a.`target_end_date` targetEndDate,a.`create_date` createDate,
+        a.`update_date` updateDate,a.`examine_state` examineState,a.`status`
+        from `rookie_training_system`.`depart_target_list` a
+        left join `rookie_training_system`.`report_creation_list` b on a.`creation_id` = b.`creation_id`
+        <where>
+            a.`status` = 1
+            and b.`report_type`=#{reportType}
+            and a.`examine_state` not in (0,3)
+            <if test="staffCode!=null">
+                and a.`target_num` = (select a.`target_num` from `rookie_training_system`.`depart_target_student` a
+                left join depart_target_list b on a.`target_num` = b.`target_num` where a.`staff_code` = #{staffCode} and b.`target_start_date` &gt; #{missionEndTime}
+                ORDER BY b.`target_start_date` limit 1)
+            </if>
+        </where>
+    </select>
+
+    <!--新增考勤信息-->
+    <insert id="insertAttendance" parameterType="com.tsbg.mis.rookie.model.AttendanceRecord">
+        insert into `rookie_training_system`.`attendance_record`
+        (`staff_code`,`staff_name`,`organization_name`,`attendance_type`,`abnormal_time`,`attendance_date`,
+        `morning_start_time`,`morning_end_time`,`afternoon_start_time`,`afternoon_end_time`,`start_extra_work`,`end_extra_work`,
+        `attendance_time`,`last_analyze_time`,`create_code`,`create_time`,`status`,`shifts_type`,`examine_type_id`)
+        VALUES
+        (#{staffCode},#{staffName},#{organizationName},#{attendanceType},#{abnormalTime},#{attendanceDate},
+        #{morningStartTime},#{morningEndTime},#{afternoonStartTime},#{afternoonEndTime},#{startExtraWork},#{endExtraWork},
+        #{attendanceTime},#{lastAnalyzeTime},#{createCode},now(),1,#{shiftsType},#{examineTypeId})
+    </insert>
+
+    <!--新增獎懲信息-->
+    <insert id="importRewardsAndPunishment" parameterType="com.tsbg.mis.rookie.model.RewardPunishRecord">
+        insert into `rookie_training_system`.`reward_punish_record`
+        (`staff_code`,`staff_name`,`examine_type`,`examine_type_id`,`date`,`reason`,`count_num`,
+        `grade`,`create_code`,`create_time`,`status`)
+        VALUES
+        (#{staffCode},#{staffName},#{examineType},#{examineTypeId},#{date},#{reason},#{countNum},
+        #{grade},#{createCode},now(),1)
+    </insert>
+
+    <select id="queryRewardPunishRecord" parameterType="java.lang.Integer" resultType="com.tsbg.mis.rookie.model.RewardPunishRecord">
+        SELECT
+          `record_id` AS recordId,
+          `staff_code` AS staffCode,
+          `staff_name` AS staffName,
+          `examine_type` AS examineType,
+          `examine_type_id` AS examineTypeId,
+          `date` AS `date`,
+          `reason` AS reason,
+          `count_num` AS countNum,
+          `grade` AS grade,
+          `create_code` AS createCode,
+          `create_time` AS createTime,
+          `status` AS `status`
+        FROM
+          `rookie_training_system`.`reward_punish_record`
+        WHERE `status` = 1
+    </select>
+
+    <select id="queryAttendanceRecord" parameterType="java.lang.Integer" resultType="com.tsbg.mis.rookie.model.AttendanceRecord">
+        SELECT
+          `attendance_record_id` AS attendanceRecordId,
+          `staff_code` AS staffCode,
+          `staff_name` AS staffName,
+          `organization_name` AS organizationName,
+          `shifts_type` AS shiftsType,
+          `attendance_type` AS attendanceType,
+          `examine_type_id` AS examineTypeId,
+          `abnormal_time` AS abnormalTime,
+          `attendance_date` AS attendanceDate,
+          `morning_start_time` AS morningStartTime,
+          `morning_end_time` AS morningEndTime,
+          `afternoon_start_time` AS afternoonStartTime,
+          `afternoon_end_time` AS afternoonEndTime,
+          `start_extra_work` AS startExtraWork,
+          `end_extra_work` AS endExtraWork,
+          `attendance_time` AS attendanceTime,
+          `last_analyze_time` AS lastAnalyzeTime,
+          `create_code` AS createCode,
+          `create_time` AS createTime,
+          `status` AS `status`
+        FROM
+          `rookie_training_system`.`attendance_record`
+        WHERE `status` = 1
+    </select>
+
+    <!--查找成员管理列表-->
+    <select id="selectMenberInfoList" resultMap="ClassStudentInfoMap">
+        select
+            `student_id` studentId,`staff_code` staffCode,`staff_name` staffName,`staff_simple_name` staffSimpleName,
+            `grade_id` gradeId,`squad_id` squadId,`student_type` studentType,`graduate_date` graduateDate,
+            `school_type` schoolType,`graduate_school` graduateSchool,`major`,`education`,`gender`,`join_date` joinDate,
+            `phone_num` phoneNum,`factory_id` factoryId,`factory_name` factoryName,`BG_id` bgId,`BG_name` bgName,
+            `unit_id` unitId,`unit_name` unitName,`BU_id` buId,`BU_name` buName,`depart_id` departId,`depart_name` departName,
+            `class_id` classId,`class_name` className,`coach_code` coachCode,`coach_name` coachName,`direct_manager_code` directManagerCode,
+            `direct_manager_name` directManagerName,`class_manager_code` classManagerCode,`class_manager_name` classManagerName,
+            `depart_manager_code` departManagerCode,`depart_manager_name` departManagerName,`unit_manager_code` unitManagerCode,
+            `unit_manager_name` unitManagerName,`class_period` classPeriod,`organization_code` organizationCode,
+            `organization_name` organizationName,`student_internship_state` studentInternshipState,
+            `overtime_control_type` overtimeControlType,`post_name` postName,`job_series` jobSeries,
+            `person_type` personType,`work_place` workPlace,`creater_code` createrCode,`create_date` createDate,`status`
+        from `rookie_training_system`.`class_student_info` a
+    </select>
+
+    <!--查詢遺留的任務-->
+    <select id="selectLeaveOverMission" resultMap="ReportDepartWorkMap" parameterType="com.tsbg.mis.rookie.model.ReportDepartList">
+        select
+            a.`work_id` workId,a.`pid`,a.`tab`,a.`report_id` reportId,a.`work_name` workName,a.`target_id` targetId,
+            a.`work_content` workContent,a.`fulfillment_of_schedule` fulfillmentOfSchedule,a.`total_time` totalTime,
+            a.`finish_proof` finishProof,a.`proof_file_id` proofFileId,a.`unfinished_reason` unfinishedReason,
+            a.`next_week_work` nextWeekWork,a.`is_continue` isContinue,a.`create_date` createDate,a.`update_date` updateDate,a.`status`
+        from
+            `rookie_training_system`.`report_depart_work` a
+        left join `rookie_training_system`.`report_depart_list` b on a.`report_id` = b.`report_id`
+        left join `rookie_training_system`.`report_creation_list` c on b.`creation_id` = c.`creation_id`
+        <where>
+            a.`is_continue` = 1 and a.`status` = 1 and b.`staff_code` = #{staffCode} and b.`creation_id` = (select `creation_id` from `rookie_training_system`.`report_creation_list` where `report_type` = #{reportType} and `mission_end_time` &lt; #{missionStartTime} ORDER BY `mission_end_time` DESC limit 1)
+            <if test="reportType!=null">
+                and c.`report_type` = #{reportType}
+            </if>
+        </where>
+    </select>
+    <!--查詢上週自己設立的下週其他任務-->
+    <select id="selectNextOtherMission" resultMap="ReportDepartWorkMap">
+        select
+            a.`work_id` workId,a.`pid`,a.`tab`,a.`report_id` reportId,a.`work_name` workName,a.`target_id` targetId,
+            a.`work_content` workContent,a.`fulfillment_of_schedule` fulfillmentOfSchedule,a.`total_time` totalTime,
+            a.`finish_proof` finishProof,a.`proof_file_id` proofFileId,a.`unfinished_reason` unfinishedReason,
+            a.`next_week_work` nextWeekWork,a.`is_continue` isContinue,a.`create_date` createDate,a.`update_date` updateDate,a.`status`
+        from
+        `rookie_training_system`.`report_depart_work` a
+        left join `rookie_training_system`.`report_depart_list` b on a.`report_id` = b.`report_id`
+        <where>
+            b.`creation_id` = (select `creation_id` from `rookie_training_system`.`report_creation_list` where `report_type` = #{reportType} and `mission_end_time` &lt; #{missionStartTime} ORDER BY `mission_end_time` DESC limit 1)
+            and b.`staff_code`=#{staffCode}
+            and a.`status` = 1
+            <if test="tab!=null">
+                and `tab` = #{tab}
+            </if>
+        </where>
+    </select>
+
+    <!--編輯部門實習報告-->
+    <update id="updateReportDepartList" parameterType="com.tsbg.mis.rookie.model.ReportDepartList">
+        update `rookie_training_system`.`report_depart_list`
+        <set >
+            <if test="workHarvest != null and workHarvest != ''" >
+                `work_harvest` = #{workHarvest},
+            </if>
+            <if test="lifeHarvest != null and lifeHarvest != ''" >
+                `life_harvest` = #{lifeHarvest},
+            </if>
+            <if test="workSuggestion != null and workSuggestion != ''" >
+                `work_suggestion` = #{workSuggestion},
+            </if>
+            <if test="updateDate!=null">
+                `update_date` = #{updateDate}
+            </if>
+        </set>
+        <where>
+            report_id = #{reportId}
+        </where>
+    </update>
+
+    <!--编辑work表-->
+    <update id="updateReportDepartWork" parameterType="com.tsbg.mis.rookie.model.ReportDepartWork">
+        update `rookie_training_system`.`report_depart_work`
+        <set>
+            <if test="workName!=null and workName!=''">
+                `work_name`=#{workName},
+            </if>
+            <if test="workContent!=null and workContent!=''">
+                `work_content`=#{workContent},
+            </if>
+            <if test="fulfillmentOfSchedule!=null and fulfillmentOfSchedule!=''">
+                `fulfillment_of_schedule`=#{fulfillmentOfSchedule},
+            </if>
+            <if test="totalTime!=null and totalTime!=''">
+                `total_time`=#{totalTime},
+            </if>
+            <if test="finishProof!=null and finishProof!=''">
+                `finish_proof`=#{finishProof},
+            </if>
+            <if test="proofFileId!=null">
+                `proof_file_id`=#{proofFileId},
+            </if>
+            <if test="unfinishedReason!=null and unfinishedReason!=''">
+                `unfinished_reason`=#{unfinishedReason},
+            </if>
+            <if test="nextWeekWork!=null and nextWeekWork!=''">
+                `next_week_work`=#{nextWeekWork},
+            </if>
+            <if test="isContinue!=null">
+                `is_continue`=#{isContinue},
+            </if>
+            <if test="updateDate!=null">
+                `update_date`=#{updateDate}
+            </if>
+        </set>
+        <where>
+            <if test="workId!=null">
+                `work_id`=#{workId}
+            </if>
+            <if test="tab!=null">
+                and `tab`=#{tab}
+            </if>
+            <if test="reportId!=null">
+                and `report_id`=#{reportId}
+            </if>
+        </where>
+    </update>
+
+    <!--查询pid-->
+    <select id="selectWorkPid" parameterType="java.lang.Integer" resultMap="ReportDepartWorkMap">
+        select `work_id` workId,`pid`,`tab`,`report_id` reportId,`work_name` workName,`target_id` targetId,`work_content` workContent,
+        `fulfillment_of_schedule` fulfillmentOfSchedule,`total_time` totalTime,`finish_proof` finishProof,
+        `proof_file_id` proofFileId,`unfinished_reason` unfinishedReason,`next_week_work` nextWeekWork,`is_continue` isContinue,
+        `create_date` createDate,`update_date` updateDate,`status`
+        from `rookie_training_system`.`report_depart_work`
+        <where>
+            `status`= 1
+            <if test="workId!=null">
+                and `work_id`=#{workId}
+            </if>
+        </where>
+    </select>
+
+    <!--修改已完成的遗留任务isContinue-->
+    <update id="updateWorkIsContinue" parameterType="java.lang.Integer">
+        update `rookie_training_system`.`report_depart_work`
+        <set>
+            `is_continue` = #{isContinue}
+        </set>
+        <where>
+            `work_id`=#{workId}
+        </where>
+    </update>
+
+
+    <!--查询学生是否是菁干班里的-->
+    <select id="selectStudentIsExist" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select count(1)
+        from `rookie_training_system`.`class_student_info`
+        <where>
+            `staff_code` = #{staffCode}
+        </where>
+    </select>
+
+    <!--重大专案相关-↓-->
+    <!--添加重大专案报告-->
+    <insert id="insertMajorProjectReport">
+        insert into `rookie_training_system`.`report_depart_major_project`
+        (`staff_code`,`mission_type`,`report_type`,`response_work_content`,`mentor_code`,`work_suggestion`,`improve_category`,
+        `i_category_remark`,`suggestion`,`state_id`,`create_date`,`update_date`,`status`)
+        values
+        (#{staffCode},#{missionType},#{reportType},#{responseWorkContent},#{mentorCode},#{workSuggestion},#{improveCategory},
+        #{iCategoryRemark},#{suggestion},#{stateId},now(),#{updateDate},1)
+    </insert>
+
+
+
+</mapper>

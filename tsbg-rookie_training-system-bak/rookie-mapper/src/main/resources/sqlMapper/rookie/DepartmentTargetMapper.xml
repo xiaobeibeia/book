@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tsbg.mis.dao.rookie.DepartmentTargetDao">
+    <resultMap id="TypeListMap" type="com.tsbg.mis.rookie.model.TypeList"/>
+    <select id="queryAllType" resultMap="TypeListMap">
+        SELECT t.type_id AS typeId,t.type_name AS typeName,t.pid AS pid,t.tab AS tab,
+        t.remark AS remark,t.status AS STATUS FROM rookie_training_system.type_list AS t WHERE t.status=1
+    </select>
+
+    <select id="queryUserRole" parameterType="String" resultType="com.tsbg.mis.jurisdiction.bag.RoleAndInfoPackage">
+         SELECT b.`user_role_id` AS uroleId,b.`user_id` AS userId,b.`role_id` AS roleId,b.`is_lock` AS isLock,
+         b.`status` AS STATUS,b.`create_code` AS createCode,b.`create_date` AS createDate,b.`last_update_code` AS lastUpdateCode,
+         b.`last_update_date` AS lastUpdateDate,b.`proj_id` AS projId,a.`staff_code` AS staffCode,a.`user_name` AS userName,
+         a.`organization_name` AS organizationName,a.`email_address` AS emailAddress,d.`role_name` AS roleName FROM user_database.`user_info` AS a
+         LEFT JOIN user_database.`user_role` AS b ON a.`user_id` = b.`user_id` LEFT JOIN user_database.`role` AS d ON b.`role_id` = d.`role_id` WHERE
+         a.`staff_code`= #{staffCode} AND b.`proj_id` = 10 AND d.`role_id` IN (14,17) AND a.`status` = 1 AND b.`status` = 1 AND d.`status` = 1
+    </select>
+
+    <select id="queryStaffInfo" parameterType="String" resultType="com.tsbg.mis.master.StaffInfo">
+        SELECT s.staff_code AS staffCode,s.staff_name AS staffName,s.staff_simple_name AS staffSimpleName,s.gender AS gender,s.BU_name AS BUName,
+        s.organization_name AS organizationName,s.unit_name AS unitName,s.depart_name AS departName,s.class_name AS className
+        FROM `master_database`.`staff_info` AS s WHERE s.`staff_code`= #{staffCode} AND s.`status`=1
+    </select>
+
+    <select id="queryClassPeriod" resultType="com.tsbg.mis.rookie.model.ReportCreationList">
+        SELECT cs.class_period AS classPeriod FROM `rookie_training_system`.class_student_info AS cs WHERE cs.status=1
+    </select>
+
+    <select id="queryReportCreation" parameterType="String" resultType="com.tsbg.mis.rookie.model.ReportCreationList">
+        SELECT r.creation_id AS creationId,r.mission_type AS missionType,r.mission_name AS missionName,r.class_period AS classPeriod,
+        r.internship_start AS internshipStart,r.internship_end AS internshipEnd,r.mission_start_time AS missionStartTime,
+        r.mission_end_time AS missionEndTime,r.report_type AS reportType,r.default_start_time AS defaultStartTime,r.default_end_time AS defaultEndTime,
+        r.start_time AS startTime,r.end_time AS endTime,r.is_enable AS isEnable,r.creator_code AS creatorCode,r.create_date AS createDate,
+        r.update_code AS updateCode,r.update_date AS updateDate,r.status AS `status` FROM rookie_training_system.report_creation_list AS r WHERE
+        r.class_period= #{classPeriod} AND r.`status`=1
+    </select>
+
+    <select id="queryClassStudentInfo" parameterType="com.tsbg.mis.rookie.model.ClassStudentInfo"
+            resultType="com.tsbg.mis.rookie.model.ClassStudentInfo">
+        SELECT cs.staff_code AS staffCode,cs.staff_name AS staffName,cs.BG_name AS bgName,cs.BU_name AS
+        buName,cs.unit_name AS unitName,cs.depart_name AS departName,
+        cs.class_name AS className,cs.class_period AS classPeriod FROM rookie_training_system.class_student_info AS cs
+        LEFT JOIN `rookie_training_system`.`depart_target_student` AS ds ON cs.`staff_code`=ds.`staff_code`
+        where cs.`status`=1
+        <if test="staffCode != null and staffCode !=''">
+            AND cs.staff_code LIKE CONCAT('%',#{staffCode},'%')
+        </if>
+        <if test="bgName!= null and bgName !=''">
+            AND cs.BG_name=#{bgName}
+        </if>
+        <if test="departName!= null and departName !=''">
+            AND cs.depart_name=#{departName}
+        </if>
+        <if test="className!= null and className !=''">
+            AND cs.class_name=#{className}
+        </if>
+        AND cs.BU_name=#{buName}
+        AND cs.class_period=#{classPeriod}
+        AND IFNULL(ds.`auto_id`, "isNull") = "isNull"
+    </select>
+
+    <insert id="insertDepartTargetLists">
+        INSERT INTO `rookie_training_system`.`depart_target_list`
+        (`target_num`,`staff_code`,`class_period`,`type_id`,`creation_id`,`pid`,`target_name`,`target_content`,`target_weight`,`target_start_date`,`end_date`,`target_end_date`,`create_date`,`update_date`,`examine_state`,`status`)
+        VALUES
+        (#{targetNum},#{staffCode},#{classPeriod},#{typeId},#{creationId},#{pid},#{targetName},#{targetContent},#{targetWeight},#{targetStartDate},#{endDate},#{targetEndDate},#{createDate},#{updateDate},#{examineState},1)
+    </insert>
+
+    <insert id="insertDepartTargetStudent">
+        INSERT INTO `rookie_training_system`.`depart_target_student`
+        (`staff_code`,`target_num`,`create_date`,`update_date`,`status`)
+        VALUES
+        (#{staffCode},#{targetNum},#{createDate},#{updateDate},1)
+    </insert>
+
+    <select id="queryTargetNum" resultType="java.lang.String">
+        SELECT departTargetList.target_num FROM rookie_training_system.depart_target_list AS departTargetList WHERE departTargetList.target_id = (
+        SELECT MAX(departTargetList.target_id) FROM rookie_training_system.depart_target_list AS departTargetList where departTargetList.type_id=4)
+    </select>
+
+    <select id="queryTargetDetailsInfo" parameterType="java.util.List"
+            resultType="com.tsbg.mis.rookie.model.DepartTargetList">
+        SELECT dl.`target_id` AS targetId,dl.`target_num` AS targetNum,dl.`staff_code` AS staffCode,dl.`class_period` AS
+        classPeriod,dl.`type_id` AS typeId,
+        dl.`creation_id` AS creationId,dl.`pid` AS pid,dl.`target_name` AS targetName,dl.`target_content` AS
+        targetContent,dl.`target_weight` AS targetWeight,dl.`target_start_date` AS targetStartDate
+        ,dl.`end_date` AS endDate,dl.`target_end_date` AS targetEndDate,dl.`create_date` AS createDate,dl.`update_date`
+        AS updateDate,dl.`examine_state` AS examineState,dl.`status` AS `status`,
+        s.staff_name AS createName,s.BU_name AS buName FROM `rookie_training_system`.`depart_target_list` AS dl
+        left join `master_database`.`staff_info` s on dl.`staff_code` = s.`staff_code`
+        WHERE dl.`target_num` in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        AND dl.`status`=1
+    </select>
+
+    <select id="queryTargetStudentInfo" parameterType="java.util.List"
+            resultType="com.tsbg.mis.rookie.model.DepartTargetStudent">
+        SELECT
+        cs.`staff_code` AS staffCode,
+        cs.`staff_name` AS staffName,
+        cs.`staff_simple_name` AS staff_simple_name,
+        cs.BU_name AS buName,
+        cs.depart_name AS departName,
+        cs.class_name AS className,
+        cs.organization_name AS organizationName,
+        ds.`auto_id` AS autoId,
+        ds.`staff_code` AS staffCode,
+        ds.`target_num` AS targetNum,
+        ds.`create_date` AS createDate,
+        ds.`update_date` AS updateDate,
+        ds.`status` AS `status`
+        FROM
+        `rookie_training_system`.`depart_target_student` AS ds
+        LEFT JOIN `rookie_training_system`.`class_student_info` AS cs
+        ON ds.`staff_code` = cs.`staff_code`
+        WHERE ds.`target_num` in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        AND ds.`status`=1
+    </select>
+
+
+    <update id="updateTargetInfo" parameterType="com.tsbg.mis.rookie.model.DepartTargetList">
+        update rookie_training_system.depart_target_list
+        <set>
+            <if test="targetName != null and targetName != ''">
+                target_name = #{targetName},
+            </if>
+            <if test="targetContent != null and targetContent != ''">
+                target_content = #{targetContent},
+            </if>
+            <if test="targetWeight != null and targetWeight != ''">
+                target_weight = #{targetWeight},
+            </if>
+        </set>
+        where target_id = #{targetId};
+    </update>
+
+    <!--修改月目标的状态-->
+    <update id="updateTargetInfosByTargetNum">
+        UPDATE rookie_training_system.depart_target_list
+        SET
+            examine_state = 0
+        WHERE
+            target_num = #{targetNum}
+    </update>
+
+    <select id="queryMonthlyWeekReportInfo" parameterType="com.tsbg.mis.rookie.model.ReportCreationList"
+            resultType="com.tsbg.mis.rookie.model.ReportCreationList">
+        SELECT
+        r.`creation_id` AS creationId,
+        r.`mission_type` AS missionType,
+        r.`mission_name` AS missionName,
+        r.`class_period` AS classPeriod,
+        r.`internship_start` AS internshipStart,
+        r.`internship_end` AS internshipEnd,
+        r.`mission_start_time` AS missionStartTime,
+        r.`mission_end_time` AS missionEndTime,
+        r.`report_type` AS reportType,
+        r.`default_start_time` AS defaultStartTime,
+        r.`default_end_time` AS defaultEndTime,
+        r.`start_time` AS startTime,
+        r.`end_time` AS endTime,
+        r.`is_enable` AS isEnable,
+        r.`creator_code` AS creatorCode,
+        r.`create_date` AS createDate,
+        r.`update_code` AS updateCode,
+        r.`update_date` AS updateDate,
+        r.`status` AS `status`
+        FROM
+        `rookie_training_system`.`report_creation_list` AS r
+        WHERE
+        <if test="(missionStartTime!=null and missionStartTime!='') and (missionEndTime != null and missionEndTime != '')">
+            r.`mission_start_time` &gt;= #{missionStartTime}
+            AND r.`mission_end_time` &lt;= #{missionEndTime}
+            AND r.report_type = 14
+            AND r.`mission_type`= 8
+            AND r.`status` = 1
+        </if>
+        <if test="missionStartTime==null and missionEndTime == null">
+            r.`mission_type`= 8
+            AND r.report_type = 15
+            AND r.`status` = 1
+        </if>
+    </select>
+
+    <select id="selectMonthReportCreationList" parameterType="com.tsbg.mis.rookie.vo.DepartTargetSetInfoList"
+            resultType="com.tsbg.mis.rookie.vo.DepartTargetSetInfoList">
+       SELECT r.`creation_id` AS creationId,r.report_type AS reportType,r.mission_start_time AS targetStartDate,r.`mission_end_time` AS targetEndDate,
+       cs.staff_code AS staffCode,cs.staff_name AS staffName,cs.staff_simple_name AS staffSimpleName,cs.organization_name AS organizationName
+       FROM `rookie_training_system`.`class_student_info` AS cs
+       LEFT JOIN `rookie_training_system`.`report_creation_list` AS r ON cs.class_period=r.class_period
+       where cs.BU_name =#{buName} AND r.report_type = 15 AND r.mission_type=8 AND cs.`status`=1 AND r.`status`=1
+    </select>
+
+    <select id="queryTargetInfo" parameterType="com.tsbg.mis.rookie.vo.DepartTargetSetInfoList"
+            resultType="com.tsbg.mis.rookie.vo.DepartTargetSetInfoList">
+        SELECT ds.target_num AS targetNum,dl.staff_code AS createCode,s.staff_name AS createName,dl.target_id AS targetId,dl.creation_id AS creationId,dl.target_name AS targetName,dl.target_content AS targetContent,
+        dl.type_id AS typeId,dl.target_start_date AS targetStartDate,dl.target_end_date AS targetEndDate,dl.examine_state as examineState,
+        cs.staff_code AS staffCode,cs.staff_name AS staffName,cs.staff_simple_name AS staffSimpleName,cs.BU_id as buId,cs.BU_name AS buName,cs.organization_name AS
+        organizationName,dl.create_date AS createDate
+        FROM `rookie_training_system`.`depart_target_student` AS ds
+        LEFT JOIN `rookie_training_system`.`class_student_info` AS cs ON ds.`staff_code`=cs.`staff_code`
+        LEFT JOIN `rookie_training_system`.`depart_target_list` AS dl ON ds.`target_num`=dl.`target_num`
+        LEFT JOIN `master_database`.`staff_info` AS s ON dl.`staff_code`=s.`staff_code`
+        WHERE ds.`staff_code`=#{staffCode} AND dl.creation_id =#{creationId}
+        AND type_id=4 AND ds.`status`=1 AND cs.`status`=1 AND s.`status`=1 AND dl.`status`=1
+        GROUP BY targetNum
+    </select>
+
+    <select id="selectWeekReportCreationList" parameterType="com.tsbg.mis.rookie.vo.DepartTargetSetInfoList"
+            resultType="com.tsbg.mis.rookie.vo.DepartTargetSetInfoList">
+        SELECT r.`creation_id` AS creationId,r.report_type AS reportType,r.mission_start_time AS targetStartDate,r.`mission_end_time` AS targetEndDate,
+        cs.staff_code AS staffCode,cs.staff_name AS staffName,cs.staff_simple_name AS staffSimpleName,cs.organization_name AS organizationName
+        FROM `rookie_training_system`.`class_student_info` AS cs
+        LEFT JOIN `rookie_training_system`.`report_creation_list` AS r ON cs.class_period=r.class_period
+        where cs.BU_name =#{buName} AND r.report_type = 14 AND r.mission_type=8 AND cs.`status`=1 AND r.`status`=1
+    </select>
+
+    <select id="queryApprovalInfo" parameterType="com.tsbg.mis.rookie.vo.DepartTargetSetInfoList"
+            resultType="com.tsbg.mis.rookie.vo.DepartTargetSetInfoList">
+        SELECT
+            dl.approve_staff_code AS approveStaffCode,
+            dl.approve_staff_name AS approveStaffName,
+            dl.signed_date AS signedDate
+        FROM
+            `rookie_training_system`.rookie_approval_info AS dl
+        WHERE
+            rookie_approval_id = (
+            SELECT
+			max(dl.rookie_approval_id)
+		FROM
+			`rookie_training_system`.`rookie_approval_info` AS dl
+		WHERE
+		dl.invest_table_name =#{investTableName}
+        AND dl.invest_field_name =#{investFieldName}
+        AND dl.invest_field_value =#{investFieldValue}
+        AND is_pass IN(0,1,3) AND dl.`status`=1
+        )
+    </select>
+
+    <!--删除目标-->
+    <update id="deleteTargetInfo" parameterType="java.lang.String">
+        update `rookie_training_system`.`depart_target_list`
+        <set>
+            `status` = 0
+        </set>
+        <where>
+            <if test="targetNum!=null and targetNum!=''">
+                `target_num` = #{targetNum}
+            </if>
+        </where>
+    </update>
+    <!--删除目标学生表里的数据-->
+    <update id="deleteStudentTarget" parameterType="java.lang.String">
+        update `rookie_training_system`.`depart_target_student`
+        <set>
+            `status` = 0
+        </set>
+        <where>
+            <if test="targetNum!=null and targetNum!=''">
+                `target_num` = #{targetNum}
+            </if>
+        </where>
+    </update>
+
+    <select id="queryReportCreationList" parameterType="Integer"
+            resultType="com.tsbg.mis.rookie.model.DepartTargetList">
+        SELECT
+              r.mission_start_time AS targetStartDate,
+              r.mission_end_time AS targetEndDate
+            FROM
+              `rookie_training_system`.`report_creation_list` AS r
+            WHERE r.`creation_id` =#{creationId}
+              AND r.`status` = 1
+    </select>
+
+    <select id="queryCreateTargetInfo" parameterType="com.tsbg.mis.rookie.model.DepartTargetList"
+            resultType="com.tsbg.mis.rookie.model.DepartTargetList">
+        SELECT
+              ds.`target_id` AS targetId,
+              ds.`target_num` AS targetNum,
+              ds.`creation_id` AS creationId,
+              ds.`target_weight` AS targetWeight,
+              ds.`target_start_date` AS targetStartDate,
+              ds.`target_end_date` AS targetEndDate
+            FROM
+              `rookie_training_system`.`depart_target_list` AS ds
+            WHERE ds.`creation_id` =#{creationId}
+              AND ds.`type_id` = 1
+              AND ds.`status` = 1
+    </select>
+
+    <select id="queryReportCreationInfo" parameterType="com.tsbg.mis.rookie.bag.WeekDepartTargetPackage"
+            resultType="com.tsbg.mis.rookie.model.DepartTargetList">
+        SELECT
+          r.`creation_id` AS creationId,
+          r.mission_start_time AS targetStartDate,
+          r.`mission_end_time` AS targetEndDate
+        FROM
+          `rookie_training_system`.`report_creation_list` AS r
+        WHERE r.`creation_id` =#{creationId}
+          AND r.`mission_type` = 8
+          AND r.`report_type` = 15
+          AND r.status = 1
+    </select>
+
+    <select id="queryWeekReportInfo" parameterType="com.tsbg.mis.rookie.model.DepartTargetList"
+            resultType="com.tsbg.mis.rookie.vo.WeekDepartTargetVo">
+        SELECT
+          r.`creation_id` AS creationId,
+          r.mission_start_time AS targetStartDate,
+          r.`mission_end_time` AS targetEndDate
+        FROM
+          `rookie_training_system`.`report_creation_list` AS r
+        WHERE r.mission_start_time &gt;=#{targetStartDate}
+          AND r.mission_end_time &lt;=#{targetEndDate}
+          AND r.`mission_type` = 8
+          AND r.`report_type` = 14
+          AND r.status = 1
+    </select>
+
+    <select id="queryWeekTargetInfo" parameterType="com.tsbg.mis.rookie.model.DepartTargetList"
+            resultType="com.tsbg.mis.rookie.model.DepartTargetList">
+        SELECT
+          ds.`target_id` AS targetId,
+          ds.`creation_id` AS creationId,
+          ds.`type_id` AS typeId,
+          ds.`target_num` AS targetNum,
+          ds.`target_content` AS targetContent,
+          ds.`target_start_date` AS targetStartDate,
+          ds.`end_date` AS targetEndDate
+        FROM
+          `rookie_training_system`.`depart_target_list` AS ds
+        WHERE ds.`creation_id` =#{creationId}
+          AND ds.`type_id` = 1
+          AND ds.status = 1
+    </select>
+
+    <!--根据targetNum 和 creationId 查询周目标-->
+    <select id="queryWeekTargetExist" resultType="com.tsbg.mis.rookie.model.DepartTargetList">
+        SELECT
+        a.`target_id` AS targetId,
+        a.`creation_id` AS creationId,
+        a.`type_id` AS typeId,
+        a.`target_num` AS targetNum,
+        a.`target_content` AS targetContent,
+        a.`target_start_date` AS targetStartDate,
+        a.`target_end_date` AS targetEndDate,
+        a.`pid` AS pid,
+        a.`examine_state` AS examineState,
+        a.`target_name` AS targetName,
+        a.`target_weight` AS targetWeight
+        FROM
+        `rookie_training_system`.`depart_target_list` AS a
+        WHERE
+        a.`pid` IN (
+        SELECT
+        ds.`target_id` AS targetId
+        FROM
+        `rookie_training_system`.`depart_target_list` AS ds
+        WHERE
+        ds.`creation_id` = #{monthCreationId}
+        AND ds.`target_num` IN
+        <foreach collection="list" index="index" item="targetNum" open="(" separator="," close=")">
+            #{targetNum}
+        </foreach>
+        AND ds.`type_id` = 4
+        AND ds.status = 1
+        )
+        AND a.`type_id` = 1
+        AND a.`creation_id` = #{weekCreationId}
+        AND a.status = 1
+    </select>
+
+    <!--查询所有目标-->
+    <select id="queryAllTarget" resultType="com.tsbg.mis.rookie.vo.TargetVo">
+        SELECT
+            a.`target_num` AS targetNum,
+            b.`target_start_date` AS targetStartDate,
+            b.`target_end_date` AS targetEndDate,
+            c.`type_name` AS typeName
+        FROM
+            depart_target_student AS a
+            LEFT JOIN depart_target_list AS b ON a.`target_num` = b.`target_num`
+            LEFT JOIN type_list AS c ON b.`type_id` = c.`type_id`
+        WHERE
+            a.`staff_code` = #{staffCode}
+            AND a.`status` = 1
+            AND b.`status` = 1
+        GROUP BY
+            a.`target_num`,
+            b.`target_start_date`,
+            b.`target_end_date`,
+            c.`type_name`
+        ORDER BY
+            b.`target_start_date` DESC
+    </select>
+
+    <!--刪除審核記錄-->
+    <update id="deleteApprovalInfo">
+        update `rookie_training_system`.`rookie_approval_info`
+        <set>
+            `status` = 0
+        </set>
+        <where>
+            <if test="investTableName!=null and investTableName!=''">
+                and `invest_table_name` = #{investTableName}
+            </if>
+            <if test="investFieldName!=null and investFieldName!=''">
+                and `invest_field_name` = #{investFieldName}
+            </if>
+            <if test="investFieldValue!=null and investFieldValue!=''">
+                and `invest_field_value` = #{investFieldValue}
+            </if>
+        </where>
+    </update>
+
+    <!--修改月目标为不可修改-->
+    <update id="updateMonthTargetState">
+        update `rookie_training_system`.`depart_target_list`
+        <set>
+            `examine_state` = 2
+        </set>
+        <where>
+            <if test="targetNum!=null and targetNum!=''">
+                `target_num` = #{targetNum}
+            </if>
+        </where>
+    </update>
+
+    <!--根据单号查询这条记录的createDate-->
+    <select id="selectCreateDateByTargetNum" resultType="com.tsbg.mis.rookie.model.DepartTargetList">
+        select distinct `create_date` createDate
+        from `rookie_training_system`.`depart_target_list`
+        <where>
+            `target_num` = #{targetNum}
+        </where>
+    </select>
+</mapper>

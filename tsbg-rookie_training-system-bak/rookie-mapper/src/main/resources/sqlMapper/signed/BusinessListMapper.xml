@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tsbg.mis.dao.signed.BusinessListDao">
+
+    <resultMap type="com.tsbg.mis.signed.model.BusinessList" id="BusinessListMap">
+        <result property="businessId" column="business_id" jdbcType="INTEGER"/>
+        <result property="signTypeId" column="sign_type_id" jdbcType="INTEGER"/>
+        <result property="businessName" column="business_name" jdbcType="VARCHAR"/>
+        <result property="projId" column="proj_id" jdbcType="INTEGER"/>
+        <result property="proName" column="pro_name" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="BusinessListMap">
+        select
+          business_id, sign_type_id, business_name, proj_id, pro_name, status
+        from signed_module_db.business_list
+        where business_id = #{businessId}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="BusinessListMap">
+        select
+          business_id, sign_type_id, business_name, proj_id, pro_name, status
+        from signed_module_db.business_list
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="BusinessListMap">
+        select
+          business_id, sign_type_id, business_name, proj_id, pro_name, status
+        from signed_module_db.business_list
+        <where>
+            <if test="businessId != null">
+                and business_id = #{businessId}
+            </if>
+            <if test="signTypeId != null">
+                and sign_type_id = #{signTypeId}
+            </if>
+            <if test="businessName != null and businessName != ''">
+                and business_name = #{businessName}
+            </if>
+            <if test="projId != null">
+                and proj_id = #{projId}
+            </if>
+            <if test="proName != null and proName != ''">
+                and pro_name = #{proName}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!--查询菁干班系统所有签核流程-->
+    <select id="inquire" resultType="com.tsbg.mis.signed.vo.SignedWorkflowVo">
+        SELECT
+            a.`business_id` AS businessId,
+            a.`sign_type_id` AS signTypeId,
+            a.`business_name` AS businessName,
+            a.`proj_id` AS projId,
+            a.`pro_name` AS proName,
+            a.`status` AS status
+        FROM
+            signed_module_db.`business_list` AS a
+        WHERE
+            a.`status` = 1
+            AND a.`proj_id` = 10
+    </select>
+
+    <!--根据 businessId 查询菁干班系统签核流程-->
+    <select id="inquireById" resultType="com.tsbg.mis.signed.vo.SignedWorkflowVo">
+        SELECT
+            a.`business_id` AS businessId,
+            a.`sign_type_id` AS signTypeId,
+            a.`business_name` AS businessName,
+            a.`proj_id` AS projId,
+            a.`pro_name` AS proName,
+            a.`status` AS status
+        FROM
+            signed_module_db.`business_list` AS a
+        WHERE
+            a.`status` = 1
+            AND a.`proj_id` = 10
+            AND a.`business_id` = #{businessId}
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="businessId" useGeneratedKeys="true">
+        insert into signed_module_db.business_list(sign_type_id, business_name, proj_id, pro_name, status)
+        values (#{signTypeId}, #{businessName}, #{projId}, #{proName}, #{status})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update signed_module_db.business_list
+        <set>
+            <if test="signTypeId != null">
+                sign_type_id = #{signTypeId},
+            </if>
+            <if test="businessName != null and businessName != ''">
+                business_name = #{businessName},
+            </if>
+            <if test="proName != null and proName != ''">
+                pro_name = #{proName},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+        </set>
+        where business_id = #{businessId}
+    </update>
+
+    <!--通过主键删除-->
+    <update id="deleteById">
+        update signed_module_db.business_list
+        set status = 0
+        where business_id = #{businessId}
+    </update>
+
+</mapper>

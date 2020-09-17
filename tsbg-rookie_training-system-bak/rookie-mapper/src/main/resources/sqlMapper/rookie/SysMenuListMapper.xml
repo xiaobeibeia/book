@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tsbg.mis.dao.rookie.SysMenuListDao">
+
+    <resultMap type="com.tsbg.mis.rookie.model.SysMenuList" id="SysMenuListMap">
+        <result property="menuId" column="menu_id" jdbcType="INTEGER"/>
+        <result property="parentId" column="parent_id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="title" column="title" jdbcType="VARCHAR"/>
+        <result property="level" column="level" jdbcType="INTEGER"/>
+        <result property="sort" column="sort" jdbcType="INTEGER"/>
+        <result property="redirect" column="redirect" jdbcType="VARCHAR"/>
+        <result property="menuType" column="menu_type" jdbcType="INTEGER"/>
+        <result property="component" column="component" jdbcType="VARCHAR"/>
+        <result property="path" column="path" jdbcType="VARCHAR"/>
+        <result property="icon" column="icon" jdbcType="VARCHAR"/>
+        <result property="isHidden" column="is_hidden" jdbcType="INTEGER"/>
+        <result property="isLock" column="is_lock" jdbcType="INTEGER"/>
+        <result property="creatorCode" column="creator_code" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="updateCode" column="update_code" jdbcType="VARCHAR"/>
+        <result property="updateDate" column="update_date" jdbcType="TIMESTAMP"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="SysMenuListMap">
+        select
+          menu_id, parent_id, name, title, level, sort, redirect, menu_type, component, path, icon, is_hidden, is_lock, creator_code, create_date, update_code, update_date, status
+        from rookie_training_system.sys_menu_list
+        where menu_id = #{menuId}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="SysMenuListMap">
+        select
+          menu_id, parent_id, name, title, level, sort, redirect, menu_type, component, path, icon, is_hidden, is_lock, creator_code, create_date, update_code, update_date, status
+        from rookie_training_system.sys_menu_list
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="SysMenuListMap">
+        select
+        menu_id, parent_id, name, title, level, sort, redirect, menu_type, component, path, icon, is_hidden, is_lock,
+        creator_code, create_date, update_code, update_date, status
+        from rookie_training_system.sys_menu_list
+        <where>
+            <if test="menuId != null">
+                and menu_id = #{menuId}
+            </if>
+            <if test="parentId != null">
+                and parent_id = #{parentId}
+            </if>
+            <if test="name != null and name != ''">
+                and name = #{name}
+            </if>
+            <if test="title != null and title != ''">
+                and title = #{title}
+            </if>
+            <if test="level != null">
+                and level = #{level}
+            </if>
+            <if test="sort != null">
+                and sort = #{sort}
+            </if>
+            <if test="redirect != null and redirect != ''">
+                and redirect = #{redirect}
+            </if>
+            <if test="menuType != null">
+                and menu_type = #{menuType}
+            </if>
+            <if test="component != null and component != ''">
+                and component = #{component}
+            </if>
+            <if test="path != null and path != ''">
+                and path = #{path}
+            </if>
+            <if test="icon != null and icon != ''">
+                and icon = #{icon}
+            </if>
+            <if test="isHidden != null">
+                and is_hidden = #{isHidden}
+            </if>
+            <if test="isLock != null">
+                and is_lock = #{isLock}
+            </if>
+            <if test="creatorCode != null and creatorCode != ''">
+                and creator_code = #{creatorCode}
+            </if>
+            <if test="createDate != null">
+                and create_date = #{createDate}
+            </if>
+            <if test="updateCode != null and updateCode != ''">
+                and update_code = #{updateCode}
+            </if>
+            <if test="updateDate != null">
+                and update_date = #{updateDate}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!--查询所有菜单列表-->
+    <select id="queryAllWithRoles" resultType="com.tsbg.mis.rookie.vo.SysMenuListVo">
+        SELECT
+            a.`menu_id` AS menuId,
+            a.`parent_id` AS parentId,
+            a.`name` AS name,
+            a.`title` AS title,
+            a.`level` AS level,
+            a.`sort` AS sort,
+            a.`redirect` AS redirect,
+            a.`menu_type` AS menuType,
+            a.`component` AS component,
+            a.`path` AS path,
+            a.`icon` AS icon,
+            a.`is_hidden` AS isHidden,
+            a.`is_lock` AS isLock,
+            a.`creator_code` AS creatorCode,
+            a.`create_date` AS createDate,
+            a.`update_code` AS updateCode,
+            a.`update_date` AS updateDate,
+            a.`status` AS status
+        FROM
+            rookie_training_system.`sys_menu_list` AS a
+        WHERE
+            a.`status` = 1
+        ORDER BY
+            a.`parent_id`, a.`sort`
+    </select>
+
+    <!--根据 menu_id 查询菜单-->
+    <select id="queryByMenuIds" resultType="com.tsbg.mis.rookie.vo.SysMenuListVo">
+        SELECT
+            a.`menu_id` AS menuId,
+            a.`parent_id` AS parentId,
+            a.`name` AS name,
+            a.`title` AS title,
+            a.`level` AS level,
+            a.`sort` AS sort,
+            a.`redirect` AS redirect,
+            a.`menu_type` AS menuType,
+            a.`component` AS component,
+            a.`path` AS path,
+            a.`icon` AS icon,
+            a.`is_hidden` AS isHidden,
+            a.`is_lock` AS isLock,
+            a.`creator_code` AS creatorCode,
+            a.`create_date` AS createDate,
+            a.`update_code` AS updateCode,
+            a.`update_date` AS updateDate,
+            a.`status` AS status
+        FROM
+            rookie_training_system.`sys_menu_list` AS a
+        WHERE
+            a.`status` = 1
+            AND a.`is_lock` = 0
+            AND a.`menu_id` IN
+            <foreach collection="list" index="index" item="menuId" open="(" separator="," close=")">
+                #{menuId}
+            </foreach>
+        ORDER BY
+            a.`parent_id`, a.`sort`
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="menuId" useGeneratedKeys="true">
+        insert into rookie_training_system.sys_menu_list(parent_id, name, title, level, sort, redirect, menu_type, component, path, icon, is_hidden, is_lock, creator_code, create_date, update_code, update_date, status)
+        values (#{parentId}, #{name}, #{title}, #{level}, #{sort}, #{redirect}, #{menuType}, #{component}, #{path}, #{icon}, #{isHidden}, #{isLock}, #{creatorCode}, #{createDate}, #{updateCode}, #{updateDate}, #{status})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update rookie_training_system.sys_menu_list
+        <set>
+            <if test="parentId != null">
+                parent_id = #{parentId},
+            </if>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="title != null and title != ''">
+                title = #{title},
+            </if>
+            <if test="level != null">
+                level = #{level},
+            </if>
+            <if test="sort != null">
+                sort = #{sort},
+            </if>
+            <if test="redirect != null">
+                redirect = #{redirect},
+            </if>
+            <if test="menuType != null">
+                menu_type = #{menuType},
+            </if>
+            <if test="component != null">
+                component = #{component},
+            </if>
+            <if test="path != null">
+                path = #{path},
+            </if>
+            <if test="icon != null">
+                icon = #{icon},
+            </if>
+            <if test="isHidden != null">
+                is_hidden = #{isHidden},
+            </if>
+            <if test="isLock != null">
+                is_lock = #{isLock},
+            </if>
+            <if test="creatorCode != null and creatorCode != ''">
+                creator_code = #{creatorCode},
+            </if>
+            <if test="createDate != null">
+                create_date = #{createDate},
+            </if>
+            <if test="updateCode != null and updateCode != ''">
+                update_code = #{updateCode},
+            </if>
+            <if test="updateDate != null">
+                update_date = #{updateDate},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+        </set>
+        where menu_id = #{menuId}
+    </update>
+
+    <!--通过menu_id删除-->
+    <update id="deleteById">
+        update rookie_training_system.sys_menu_list
+        set status = 0
+        where menu_id = #{menuId}
+    </update>
+
+</mapper>

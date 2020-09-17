@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tsbg.mis.dao.rookie.ProductionLineListDao">
+    <resultMap id="ProductionLineListVoMap" type="com.tsbg.mis.rookie.vo.ProductionLineListVo"/>
+    <resultMap id="StaffInfoMap" type="com.tsbg.mis.master.StaffInfo"/>
+    <resultMap id="ClassStudentInfoMap" type="com.tsbg.mis.rookie.vo.ClassStudentInfoVo"/>
+    <resultMap id="UserInfoMap" type="com.tsbg.mis.jurisdiction.model.UserInfo"/>
+
+    <!--新增产线-->
+    <insert id="insertLine" parameterType="com.tsbg.mis.rookie.vo.ProductionLineListVo" useGeneratedKeys="true" keyProperty="lineId">
+        insert into `rookie_training_system`.`production_line_list`
+        (`line_name`,`line_leader_code`,`line_leader_name`,`line_leader_email`,`line_group_leader_code`,`line_group_leader_name`,`line_group_leader_email`,`line_manager_code`,`line_manager_name`,`line_manager_email`,`creator_code`,`create_date`,`update_code`,`update_date`,`status`)
+        values
+        (#{lineName},#{lineLeaderCode},#{lineLeaderName},#{lineLeaderEmail},#{lineGroupLeaderCode},#{lineGroupLeaderName},#{lineGroupLeaderEmail},#{lineManagerCode},#{lineManagerName},#{lineManagerEmail},#{creatorCode},now(),#{updateCode},now(),1)
+    </insert>
+    <!--新增产线实习学生-->
+    <insert id="insertStudentInfo" parameterType="com.tsbg.mis.rookie.vo.ProductionLineListVo">
+        insert into `rookie_training_system`.`production_line_student_list`
+        (`line_id`,`staff_code`,`creator_code`,`create_date`,`internship_start_date`,`internship_end_date`,`status`)
+        values
+        (#{lineId},#{studentCode},#{creatorCode},now(),#{internshipStartDate},#{internshipEndDate},1)
+    </insert>
+    <!--根据工号查询个人信息-->
+    <select id="selectStaffInfoByCode" parameterType="java.lang.String" resultMap="StaffInfoMap">
+        select `staff_code` staffCode,`staff_name` staffName,`email`, `phone_num` phoneNum
+        from `master_database`.`staff_info`
+        <where>
+            `status`=1
+            <if test="staffCode!=null and staffCode!=''">
+                and `staff_code`=#{staffCode}
+            </if>
+        </where>
+    </select>
+
+    <!--根据角色查询个人信息-->
+    <select id="selectUserInfoByRole" resultMap="UserInfoMap">
+        select a.`staff_code` staffCode,a.`user_name` userName,a.`email_address` emailAddress
+        from `user_database`.`user_info` a
+        left join `user_database`.`user_role` b on a.`user_id`=b.`user_id`
+        <where>
+            b.`status`=1
+            <if test="roleId!=null">
+                and b.`role_id`=#{roleId}
+            </if>
+        </where>
+    </select>
+
+    <!--模糊搜索产线-->
+    <select id="fuzzySearchLine" parameterType="com.tsbg.mis.rookie.vo.ProductionLineListVo" resultMap="ProductionLineListVoMap">
+        select DISTINCT a.`line_name` lineName,a.`line_leader_code` lineLeaderCode,a.`line_leader_name` lineLeaderName,a.`line_id` lineId,
+        a.`line_group_leader_code` lineGroupLeaderCode,a.`line_group_leader_name` lineGroupLeaderName,a.`line_manager_code` lineManagerCode,a.`line_manager_name` lineManagerName,
+        b.`internship_start_date` internshipStartDate,
+        b.`internship_end_date` internshipEndDate
+        from `rookie_training_system`.`production_line_list` a
+        LEFT JOIN `rookie_training_system`.`production_line_student_list` b ON a.`line_id` = b.`line_id` and b.`status`=1
+        LEFT JOIN `rookie_training_system`.`class_student_info` c ON b.`staff_code` = c.`staff_code`
+        <where>
+            a.`status`=1
+            <if test="lineId!=null">
+                and a.`line_id`=#{lineId}
+            </if>
+            <if test="lineName!=null and lineName!=''">
+                and a.`line_name` like concat('%',#{lineName},'%')
+            </if>
+            <if test="lineManagerName!=null and lineManagerName!=''">
+                and a.`line_manager_name`=#{lineManagerName}
+            </if>
+            <if test="lineGroupLeaderName!=null and lineGroupLeaderName!=''">
+                and a.`line_group_leader_name`=#{lineGroupLeaderName}
+            </if>
+            <if test="lineLeaderName!=null and lineLeaderName!=''">
+                and a.`line_leader_name`=#{lineLeaderName}
+            </if>
+            <if test="lineManagerCode!=null and lineManagerCode!=''">
+                and a.`line_manager_code`=#{lineManagerCode}
+            </if>
+            <if test="lineGroupLeaderCode!=null and lineGroupLeaderCode!=''">
+                and a.`line_group_leader_code`=#{lineGroupLeaderCode}
+            </if>
+            <if test="lineLeaderCode!=null and lineLeaderCode!=''">
+                and a.`line_leader_code`=#{lineLeaderCode}
+            </if>
+            <if test="internshipStartDate!=null">
+                and b.`internship_start_date` &gt;= #{internshipStartDate}
+            </if>
+            <if test="internshipEndDate!=null">
+                and b.`internship_end_date` &lt;= #{internshipEndDate}
+            </if>
+            <if test="staffCode!=null and staffCode!=''">
+                and c.`staff_code` like concat('%',#{staffCode},'%')
+            </if>
+            <if test="staffName!=null and staffName!=''">
+                and (c.`staff_name` like concat('%',#{staffName},'%') or c.`staff_simple_name` like concat('%',#{staffName},'%'))
+            </if>
+        </where>
+    </select>
+    <!--根据产线id查找底下的学生-->
+    <select id="selectStudentInfoByLineId" parameterType="java.lang.Integer" resultMap="ClassStudentInfoMap">
+        select c.`student_id` studentId, c.`staff_name` staffName,c.`depart_name` departName,c.`staff_code` staffCode,gender,c.`organization_name` organizationName
+        from `rookie_training_system`.`production_line_student_list` a
+        left join `rookie_training_system`.`production_line_list` b on a.`line_id`=b.`line_id`
+        left join `rookie_training_system`.`class_student_info` c on a.`staff_code`=c.`staff_code`
+        <where>
+            c.`status`=1 and a.`status`=1
+            <if test="lineId!=null">
+                and a.`line_id`=#{lineId}
+            </if>
+        </where>
+    </select>
+    
+    <!--修改产线信息-->
+    <update id="updateLineInfo" parameterType="com.tsbg.mis.rookie.vo.ProductionLineListVo">
+        update `rookie_training_system`.`production_line_list`
+        <set>
+            <if test="lineName!=null and lineName!=''">
+                `line_name`=#{lineName},
+            </if>
+            <if test="lineLeaderName!=null and lineLeaderName!=''">
+                `line_leader_name`=#{lineLeaderName},
+            </if>
+            <if test="lineLeaderCode!=null and lineLeaderCode!=''">
+                `line_leader_code`=#{lineLeaderCode},
+            </if>
+            <if test="lineLeaderEmail!=null and lineLeaderEmail!=''">
+                `line_leader_email`=#{lineLeaderEmail},
+            </if>
+            <if test="lineGroupLeaderCode!=null and lineGroupLeaderCode!=''">
+                `line_group_leader_code`=#{lineGroupLeaderCode},
+            </if>
+            <if test="lineGroupLeaderName!=null and lineGroupLeaderName!=''">
+                `line_group_leader_name`=#{lineGroupLeaderName},
+            </if>
+            <if test="lineGroupLeaderEmail!=null and lineGroupLeaderEmail!=''">
+                `line_group_leader_email`=#{lineGroupLeaderEmail},
+            </if>
+            <if test="lineManagerCode!=null and lineManagerCode!=''">
+                `line_manager_code`=#{lineManagerCode},
+            </if>
+            <if test="lineManagerName!=null and lineManagerName!=''">
+                `line_manager_name`=#{lineManagerName},
+            </if>
+            <if test="lineManagerEmail!=null and lineManagerEmail!=''">
+                `line_manager_email`=#{lineManagerEmail},
+            </if>
+            <if test="updateCode!=null and updateCode!=''">
+                `update_code`=#{updateCode},
+            </if>
+            `update_date`=now()
+        </set>
+        <where>
+            `line_id`=#{lineId}
+        </where>
+    </update>
+
+    <!--查詢学生表所有有效的学生-->
+    <select id="selectStudentInStudentInfo" resultMap="ClassStudentInfoMap">
+        select a.`student_id` studentId,a.`staff_code` staffCode,a.`staff_name` staffName,a.`staff_simple_name` staffSimpleName,
+        a.`grade_id` gradeId,b.`grade_name` gradeName,a.`squad_id` squadId,a.`student_type` studentType,a.`graduate_date` graduateDate,
+        a.`graduate_school` graduateSchool,a.`gender`,a.`join_date` joinDate,a.`phone_num` phoneNum,a.`school_type` schoolType,
+        a.`education`,a.`factory_id` factoryId,a.`factory_name` factoryName,a.`BG_id` bgId,a.`BG_name` bgName,a.`unit_id` unitId,
+        a.`unit_name` unitName,a.`BU_id` buId,a.`BU_name` buName,a.`depart_id` departId,a.`depart_name` departName,a.`class_id` classId,
+        a.`class_name` className,a.`direct_manager_code` directManagerCode,a.`direct_manager_name` directManagerName,
+        a.`class_manager_code` classManagerCode,a.`class_manager_name` classManagerName,a.`depart_manager_code` departManagerCode,
+        a.`depart_manager_name` departManagerName,a.`unit_manager_code` unitManagerCode,a.`unit_manager_name` unitManagerName,
+        a.`class_period` classPeriod,a.`organization_code` organizationCode,a.`organization_name` organizationName,
+        a.`student_internship_state` studentInternshipState,a.`overtime_control_type` overtimeControlType,a.`post_name` postName,
+        a.`job_series` jobSeries,a.`person_type` personType,a.`work_place` workPlace,a.`creater_code` createrCode,a.`create_date` createDate,a.`status`,
+        a.`coach_code` coachCode,a.`coach_name` coachName
+        from `rookie_training_system`.`class_student_info` a
+        left join `rookie_training_system`.`class_grade_info` b on a.`grade_id`=b.`grade_id`
+        <where>
+            a.`status`=1
+        </where>
+    </select>
+
+
+        <!--查询user_info表里所有的有效成员-->
+    <select id="selectUserInfo" resultMap="UserInfoMap">
+        select `user_id` userId,`staff_code` staffCode,`user_name` userName
+        from `user_database`.`user_info`
+        where `status`=1
+    </select>
+    
+    <!--软删除产线-->
+    <update id="updateLineStatusByLineId" parameterType="java.lang.Integer">
+        update `rookie_training_system`.`production_line_list`
+        <set>
+            `status` = 0
+        </set>
+        where `line_id`=#{lineId}
+    </update>
+
+    <!--根据实习时间查找未分配的学生-->
+    <select id="selectStudentWhereUndistributedByDate" parameterType="com.tsbg.mis.rookie.vo.ProductionLineListVo" resultMap="ClassStudentInfoMap">
+        select a.`staff_code` staffCode,a.`staff_name` staffName,a.`BG_name` bgName,b.`grade_name` gradeName,a.`student_id` studentId,a.`depart_name` departName,
+        a.`organization_name` organizationName
+        from `rookie_training_system`.`class_student_info` a
+        left join `rookie_training_system`.`class_grade_info` b on a.`grade_id`=b.`grade_id`
+        <where>
+            a.`status`=1
+            and a.`staff_code` not in
+            (select `staff_code` from `rookie_training_system`.`production_line_student_list` where (`internship_start_date` &lt;= #{internshipEndDate} and `internship_end_date` &gt;= #{internshipStartDate}) and `status`=1)
+        </where>
+    </select>
+
+    <!--根据工号查询这个人有什么角色-->
+    <select id="selectRoleByStaffCode" resultType="java.lang.Integer">
+        select b.`role_id` roleId
+        from `user_database`.`user_info` a
+        left join `user_database`.`user_role` b on a.`user_id`=b.`user_id`
+        <where>
+            <if test="staffCode!=null and staffCode!=''">
+                a.`staff_code`=#{staffCode}
+            </if>
+        </where>
+    </select>
+
+    <!--编辑学生-->
+    <update id="updateStudentInfo" parameterType="com.tsbg.mis.rookie.model.ClassStudentInfo">
+        update `rookie_training_system`.`class_student_info`
+        <set>
+            <if test="staffCode!=null and staffCode!=''">
+                `staff_code` =#{staffCode},
+            </if>
+            <if test="staffName!=null and staffName!=''">
+                `staff_name`=#{staffName},
+            </if>
+            <if test="staffSimpleName!=null and staffSimpleName!=''">
+                `staff_simple_name` =#{staffSimpleName},
+            </if>
+            <if test="gradeId!=null">
+                `grade_id`=#{gradeId},
+            </if>
+            <if test="squadId!=null">
+                `squad_id`=#{squadId},
+            </if>
+            <if test="studentType!=null">
+                `student_type`=#{studentType},
+            </if>
+            <if test="graduateDate!=null">
+                `graduate_date`=#{graduateDate},
+            </if>
+            <if test="graduateSchool!=null and graduateSchool!=''">
+                `graduate_school`=#{graduateSchool},
+            </if>
+            <if test="gender!=null">
+                `gender`=#{gender},
+            </if>
+            <if test="joinDate!=null">
+                `join_date`=#{joinDate},
+            </if>
+            <if test="phoneNum!=null and phoneNum!=''">
+                `phone_num`=#{phoneNum},
+            </if>
+            <if test="schoolType!=null">
+                `school_type`=#{schoolType},
+            </if>
+            <if test="education!=null and education!=''">
+                `education`=#{education},
+            </if>
+            <if test="factoryId!=null">
+                `factory_id`=#{factoryId},
+            </if>
+            <if test="factoryName!=null and factoryName!=''">
+                `factory_name`=#{factoryName},
+            </if>
+            <if test="bgId!=null">
+                `BG_id`=#{bgId},
+            </if>
+            <if test="bgName!=null and bgName!=''">
+                `BG_name`=#{bgName},
+            </if>
+            <if test="unitId!=null">
+                `unit_id`=#{unitId},
+            </if>
+            <if test="unitName!=null and unitName!=''">
+                `unit_name`=#{unitName},
+            </if>
+            <if test="buId!=null">
+                `BU_id`=#{buId},
+            </if>
+            <if test="buName!=null and buName!=''">
+                `BU_name`=#{buName},
+            </if>
+            <if test="departId!=null">
+                `depart_id`=#{departId},
+            </if>
+            <if test="departName!=null and departName!=''">
+                `depart_name`=#{departName},
+            </if>
+            <if test="classId!=null">
+                `class_id`=#{classId},
+            </if>
+            <if test="className!=null and className!=''">
+                `class_name`=#{className},
+            </if>
+            <if test="directManagerCode!=null and directManagerCode!=''">
+                `direct_manager_code`=#{directManagerCode},
+            </if>
+            <if test="directManagerName!=null and directManagerName!=''">
+                `direct_manager_name`=#{directManagerName},
+            </if>
+            <if test="classManagerCode!=null and classManagerCode!=''">
+                `class_manager_code`=#{classManagerCode},
+            </if>
+            <if test="classManagerName!=null and classManagerName!=''">
+                `class_manager_name`=#{classManagerName},
+            </if>
+            <if test="departManagerCode!=null and departManagerCode!=''">
+                `depart_manager_code`=#{departManagerCode},
+            </if>
+            <if test="departManagerName!=null and departManagerName!=''">
+                `depart_manager_name`=#{departManagerName},
+            </if>
+            <if test="coachCode!=null and coachCode!=''">
+                `coach_code`=#{coachCode},
+            </if>
+            <if test="coachName!=null and coachName!=''">
+                `coach_name`=#{coachName},
+            </if>
+            <if test="unitManagerCode!=null and unitManagerCode!=''">
+                `unit_manager_code`=#{unitManagerCode},
+            </if>
+            <if test="unitManagerName!=null and unitManagerName!=''">
+                `unit_manager_name`=#{unitManagerName},
+            </if>
+            <if test="classPeriod!=null and classPeriod!=''">
+                `class_period`=#{classPeriod},
+            </if>
+            <if test="organizationCode!=null and organizationCode!=''">
+                `organization_code`=#{organizationCode},
+            </if>
+            <if test="organizationName!=null and organizationName!=''">
+                `organization_name`=#{organizationName},
+            </if>
+            <if test="studentInternshipState!=null">
+                `student_internship_state`=#{studentInternshipState},
+            </if>
+            <if test="overtimeControlType!=null and overtimeControlType!=''">
+                `overtime_control_type`=#{overtimeControlType},
+            </if>
+            <if test="postName!=null and postName!=''">
+                `post_name`=#{postName},
+            </if>
+            <if test="jobSeries!=null and jobSeries!=''">
+                `job_series`=#{jobSeries},
+            </if>
+            <if test="personType!=null and personType!=''">
+                `person_type`=#{personType},
+            </if>
+            <if test="workPlace!=null and workPlace!=''">
+                `work_place`=#{workPlace},
+            </if>
+            <if test="status!=null">
+                `status`=#{status}
+            </if>
+        </set>
+        <where>
+            <if test="staffCode!=null and staffCode!=''">
+                `staff_code`=#{staffCode}
+            </if>
+            <if test="studentId!=null">
+                and `student_id`=#{studentId}
+            </if>
+        </where>
+    </update>
+
+    <select id="queryProductionLineRecord" parameterType="com.tsbg.mis.rookie.vo.ProductionLineInfoVo" resultType="com.tsbg.mis.rookie.vo.ProductionLineInfoVo">
+        SELECT cs.student_id AS studentId,cs.staff_code AS staffCode,ps.line_id AS lineId,ps.line_name AS lineName,ps.line_leader_code AS lineLeaderCode,ps.line_leader_name AS lineLeaderName,
+        ps.line_group_leader_code AS lineGroupLeaderCode,ps.line_group_leader_name AS lineGroupLeaderName,ps.line_manager_code AS lineManagerCode,
+        ps.line_manager_name AS lineManagerName,LEFT(pl.internship_start_date,10) AS internshipStartDate,LEFT(pl.internship_end_date,10) AS internshipEndDate,
+        pl.line_member_id AS lineMemberId FROM rookie_training_system.production_line_list AS ps LEFT JOIN rookie_training_system.production_line_student_list AS pl ON ps.line_id=pl.line_id
+        LEFT JOIN rookie_training_system.class_student_info AS cs ON pl.staff_code=cs.staff_code WHERE ps.line_id =#{lineId} AND cs.staff_code =#{staffCode}
+        AND cs.status = 1 AND ps.status = 1 AND pl.status =1
+    </select>
+
+    <!--软删除class_student_info的学生-->
+    <update id="deleteStudentInClassStudentInfo">
+        update `rookie_training_system`.`class_student_info`
+        <set>
+            `status`=0
+        </set>
+        <where>
+            <if test="staffCode!=null and staffCode!=''">
+                `staff_code`=#{staffCode}
+            </if>
+        </where>
+    </update>
+    <!--软删除产线学生表的学生(用于之后添加删除成员-->
+    <update id="updateLineStudentStatusByLineId" parameterType="java.lang.Integer">
+        update `rookie_training_system`.`production_line_student_list`
+        <set>
+            `status` = 0
+        </set>
+        <where>
+            <if test="lineId!=null">
+                `line_id`=#{lineId}
+            </if>
+            <if test="staffCode!=null and staffCode !=''">
+                and `student_id` = (select `student_id` from `rookie_training_system`.`class_student_info` where `staff_code`=#{staffCode})
+            </if>
+        </where>
+    </update>
+
+    <select id="selectIsSquadLeader" resultType="java.lang.Integer">
+        SELECT COUNT(0) FROM rookie_training_system.class_squad_list
+        WHERE `status` = 1 AND s_leader_code = #{staffCode}
+    </select>
+
+    <update id="delSquadLeader">
+        UPDATE rookie_training_system.class_squad_list
+        SET `status` = 0
+        WHERE s_leader_code = #{staffCode}
+    </update>
+
+    <select id="queryUserInfo" parameterType="String" resultType="com.tsbg.mis.jurisdiction.model.UserInfo">
+        SELECT u.phone_number AS phoneNumber,u.user_ext AS userExt,u.email_address AS emailAddress FROM user_database.user_info AS u
+        WHERE u.staff_code= #{staffCode} AND u.status = 1
+    </select>
+
+    <select id="querydepartmentInternshipRecord" parameterType="String" resultType="com.tsbg.mis.rookie.vo.ProductionLineInfoVo">
+        SELECT cs.depart_name AS departName,cs.`coach_code` AS coachCode,cs.`coach_name` AS coachName,cs.direct_manager_code AS directManagerCode,cs.`direct_manager_name` AS directManagerName,
+	    cs.`depart_manager_code` AS departManagerCode,cs.`depart_manager_name` AS departManagerName,cs.`unit_manager_code` AS unitManagerCode,cs.`unit_manager_name` AS unitManagerName,
+        pl.internship_start_date AS internshipStartDate,pl.internship_end_date AS internshipEndDate FROM rookie_training_system.class_student_info AS cs LEFT JOIN rookie_training_system.production_line_student_list AS pl
+        ON cs.`staff_code`=pl.`staff_code`
+        WHERE cs.staff_code =#{staffCode} AND cs.status = 1 AND pl.status =1
+    </select>
+
+    <select id="queryMyProductionLineRecord" parameterType="com.tsbg.mis.rookie.vo.ProductionLineInfoVo" resultType="com.tsbg.mis.rookie.vo.ProductionLineInfoVo">
+        SELECT pl.line_id AS lineId,pl.internship_start_date AS internshipStartDate,pl.internship_end_date AS internshipEndDate FROM rookie_training_system.class_student_info
+        AS cs LEFT JOIN rookie_training_system.production_line_student_list AS pl
+        ON cs.staff_code=pl.staff_code
+        <where>
+            <if test="(internshipStartDate!=null) and (internshipEndDate != null)">
+                and pl.internship_start_date &gt;= #{internshipStartDate}
+                and pl.internship_end_date &lt;= #{internshipEndDate}
+            </if>
+           <!-- <if test="internshipStartDate!=null">
+                and pl.internship_start_date = #{internshipStartDate}
+            </if>
+            <if test="internshipEndDate!=null">
+                and pl.internship_end_date = #{internshipEndDate}
+            </if>-->
+            AND cs.staff_code =#{staffCode}
+            AND cs.status = 1
+            AND pl.status = 1
+            ORDER BY pl.internship_start_date
+        </where>
+    </select>
+
+</mapper>

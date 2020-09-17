@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tsbg.mis.dao.jurisdiction.SystemLogDao" >
+    <resultMap id="BaseResultMap" type="com.tsbg.mis.log.model.SystemLog" />
+
+    <insert id="insert">
+      INSERT INTO systems_log.rookie_training_system_log
+      (data_value,version_number,request_user_code,request_user_name,request_ip,
+      request_method,request_code,request_message,operation,params,time,createTime)
+      VALUES
+      (#{dataValue},#{versionNumber},#{requestUserCode},#{requestUserName},#{requestIp},
+      #{requestMethod},#{requestCode},#{requestMessage},#{operation},#{params},#{time},#{createTime})
+    </insert>
+
+</mapper>

@@ -1,0 +1,557 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tsbg.mis.dao.rookie.UserPowerDao">
+
+    <!--查询菁干班系统所有用户-->
+    <select id="inquireManager" resultType="com.tsbg.mis.jurisdiction.bag.RoleAndInfoPackage">
+        SELECT
+            a.`user_role_id` AS uroleId,
+            a.`user_id` AS userId,
+            a.`role_id` AS roleId,
+            a.`is_lock` AS isLock,
+            a.`status` AS status,
+            a.`create_code` AS createCode,
+            a.`create_date` AS createDate,
+            a.`last_update_code` AS lastUpdateCode,
+            a.`last_update_date` AS lastUpdateDate,
+            a.`proj_id` AS projId,
+            b.`user_code` AS userCode,
+            b.`user_name` AS userName,
+            c.`unit_id` AS unitId,
+            c.`unit_name` AS unitName,
+            c.`factory_name` AS factoryName,
+            c.`depart_name` AS departName,
+            c.`organization_name` AS organizationName,
+            c.`email` AS emailAddress,
+            d.`role` AS role,
+            d.`description` AS description
+        FROM
+            user_database.`user_role` AS a
+            LEFT JOIN user_database.`user_info` AS b ON a.`user_id` = b.`user_id`
+            LEFT JOIN center_database.`staff_info` AS c ON b.`user_code`=c.`staff_code`
+            LEFT JOIN user_database.`role` AS d ON a.`role_id`=d.`roleid`
+        WHERE
+            a.`proj_id` = 10
+            AND a.`status` = 1
+            AND (b.`proj_id` != 6 OR b.`proj_id` is NULL)
+        ORDER BY
+            a.`create_date` DESC
+    </select>
+
+    <!--按工号模糊搜索-->
+    <select id="fuzzySearchByUserCode" resultType="com.tsbg.mis.jurisdiction.vo.UserInfoVo" parameterType="String">
+        SELECT
+            a.`user_id` AS userId,
+            a.`user_code` AS userCode,
+            a.`user_name` AS userName,
+            a.`phone_number` AS phoneNumber,
+            a.`email_address` AS emailAddress,
+            a.`create_time` AS createTime
+        FROM
+            user_database.`user_info` AS a
+        WHERE
+            a.`user_code` LIKE CONCAT('%',#{key},'%')
+        ORDER BY
+            a.`create_time` DESC
+    </select>
+
+    <!--按姓名模糊搜索-->
+    <select id="fuzzySearchByUserName" resultType="com.tsbg.mis.jurisdiction.vo.UserInfoVo" parameterType="String">
+        SELECT
+            a.`user_id` AS userId,
+            a.`user_code` AS userCode,
+            a.`user_name` AS userName,
+            a.`phone_number` AS phoneNumber,
+            a.`email_address` AS emailAddress,
+            a.`create_time` AS createTime
+        FROM
+            user_database.`user_info` AS a
+        WHERE
+            a.`user_name` LIKE CONCAT('%',#{key},'%')
+        ORDER BY
+            a.`create_time` DESC
+    </select>
+
+    <!--按工号搜索菁干班系统的用户-->
+    <select id="fuzzySearchUserRoleByUserCode" resultType="com.tsbg.mis.jurisdiction.bag.RoleAndInfoPackage"
+            parameterType="String">
+        SELECT
+            a.`user_role_id` AS uroleId,
+            a.`user_id` AS userId,
+            a.`role_id` AS roleId,
+            a.`is_lock` AS isLock,
+            a.`status` AS status,
+            a.`create_code` AS createCode,
+            a.`create_date` AS createDate,
+            a.`last_update_code` AS lastUpdateCode,
+            a.`last_update_date` AS lastUpdateDate,
+            a.`proj_id` AS projId,
+            b.`user_code` AS userCode,
+            b.`user_name` AS userName,
+            b.`unit_id` AS unitId,
+            c.`unit_name` AS unitName,
+            b.`email_address` AS emailAddress,
+            d.`role` AS role,
+            d.`description` AS description
+        FROM
+            user_database.`user_role` AS a
+            LEFT JOIN user_database.`user_info` AS b ON a.`user_id` = b.`user_id`
+            LEFT JOIN center_database.`unit_list` AS c ON b.`unit_id`=c.`unit_id`
+            LEFT JOIN user_database.`role` AS d ON a.`role_id`=d.`roleid`
+        WHERE
+            a.`proj_id` = 5
+            AND a.`status` = 1
+            AND b.`user_code` LIKE CONCAT('%',#{key},'%')
+        ORDER BY
+            a.`create_date` DESC
+    </select>
+
+    <!--按姓名搜索菁干班系统的用户-->
+    <select id="fuzzySearchUserRoleByUserName" resultType="com.tsbg.mis.jurisdiction.bag.RoleAndInfoPackage"
+            parameterType="String">
+        SELECT
+            a.`user_role_id` AS uroleId,
+            a.`user_id` AS userId,
+            a.`role_id` AS roleId,
+            a.`is_lock` AS isLock,
+            a.`status` AS status,
+            a.`create_code` AS createCode,
+            a.`create_date` AS createDate,
+            a.`last_update_code` AS lastUpdateCode,
+            a.`last_update_date` AS lastUpdateDate,
+            a.`proj_id` AS projId,
+            b.`user_code` AS userCode,
+            b.`user_name` AS userName,
+            b.`unit_id` AS unitId,
+            c.`unit_name` AS unitName,
+            b.`email_address` AS emailAddress,
+            d.`role` AS role,
+            d.`description` AS description
+        FROM
+            user_database.`user_role` AS a
+            LEFT JOIN user_database.`user_info` AS b ON a.`user_id` = b.`user_id`
+            LEFT JOIN center_database.`unit_list` AS c ON b.`unit_id`=c.`unit_id`
+            LEFT JOIN user_database.`role` AS d ON a.`role_id`=d.`roleid`
+        WHERE
+            a.`proj_id` = 5
+            AND a.`status` = 1
+            AND b.`user_name` LIKE CONCAT('%',#{key},'%')
+        ORDER BY
+            a.`create_date` DESC
+    </select>
+
+    <!--判断该用户是否已经是菁干班系统的用户-->
+    <select id="selectCountByUserId" resultType="java.lang.Integer" parameterType="java.lang.Integer">
+        SELECT
+            COUNT( 0 )
+        FROM
+            user_database.`user_role` AS a
+        WHERE
+            a.`user_id` = #{userId,jdbcType=INTEGER} AND a.`proj_id` = 5;
+    </select>
+
+    <!--查询菁干班系统所有角色信息-->
+    <select id="inquireRole" resultType="com.tsbg.mis.jurisdiction.model.Role">
+        SELECT
+            a.`role_id` AS roleId,
+            a.`role_name` AS roleName,
+            a.`role_describe` AS roleDescribe,
+            a.`proj_id` AS projId,
+            a.`status` AS STATUS,
+            a.`remark` AS remark
+        FROM
+            user_database.`role` AS a
+        WHERE
+            a.`proj_id` = 10
+    </select>
+
+    <!--根据 userId 查询用户的角色信息-->
+    <select id="inquireRoleByUserId" resultType="com.tsbg.mis.jurisdiction.bag.RoleAndInfoPackage"
+            parameterType="java.lang.Integer">
+        SELECT
+            a.`user_role_id` AS uroleId,
+            a.`user_id` AS userId,
+            a.`role_id` AS roleId,
+            a.`is_lock` AS isLock,
+            a.`status` AS STATUS,
+            a.`create_code` AS creatCode,
+            a.`create_date` AS craeteDate,
+            a.`last_update_code` AS lastUpdateCode,
+            a.`last_update_date` AS lastUpdateDate,
+            a.`proj_id` AS projId
+        FROM
+            user_database.`user_role` AS a
+        WHERE
+            a.`proj_id` = 10
+            AND a.`user_id` = #{userId,jdbcType=INTEGER}
+            AND a.`role_id` != 9
+        ORDER BY
+            a.`create_date` DESC
+    </select>
+
+    <!--根据 userId 查询用户的角色信息-->
+    <select id="inquireRoleByUser" resultType="com.tsbg.mis.jurisdiction.bag.RoleAndInfoPackage"
+            parameterType="java.lang.Integer">
+        SELECT
+            a.`user_role_id` AS uroleId,
+            a.`user_id` AS userId,
+            a.`role_id` AS roleId,
+            a.`is_lock` AS isLock,
+            a.`status` AS status,
+            a.`create_code` AS creatCode,
+            a.`create_date` AS craeteDate,
+            a.`last_update_code` AS lastUpdateCode,
+            a.`last_update_date` AS lastUpdateDate,
+            a.`proj_id` AS projId
+        FROM
+            user_database.`user_role` AS a
+        WHERE
+            a.`proj_id` = 10
+            AND a.`user_id` = #{userId,jdbcType=INTEGER}
+        ORDER BY
+            a.`create_date` DESC
+    </select>
+
+    <!--判断用户的基本角色是否被停用-->
+    <select id="selectBasicRoleByUserId" resultType="java.lang.Integer" parameterType="java.lang.Integer">
+        SELECT
+            a.`is_lock` AS isLock
+        FROM
+            user_database.`user_role` AS a
+        WHERE
+            a.`user_id` = #{userId,jdbcType=INTEGER}
+            AND a.`proj_id` = 10
+            AND a.`role_id` = 9
+    </select>
+
+    <!--新增用户——模糊搜索查所有-->
+    <select id="selectAllUserInfo" resultType="com.tsbg.mis.jurisdiction.vo.UserInfoVo">
+        SELECT
+            a.`user_id` AS userId,
+            a.`user_code` AS userCode,
+            a.`user_name` AS userName,
+            a.`phone_number` AS phoneNumber,
+            a.`email_address` AS emailAddress,
+            a.`create_time` AS createTime
+        FROM
+            user_database.`user_info` AS a
+        ORDER BY
+            a.`create_time` DESC
+    </select>
+
+    <!--搜索菁干班系统用户——模糊搜索查所有-->
+    <select id="searchAllUserAndRole" resultType="com.tsbg.mis.jurisdiction.bag.RoleAndInfoPackage">
+        SELECT
+            a.`user_role_id` AS uroleId,
+            a.`user_id` AS userId,
+            a.`role_id` AS roleId,
+            a.`is_lock` AS isLock,
+            a.`status` AS status,
+            a.`create_code` AS createCode,
+            a.`create_date` AS createDate,
+            a.`last_update_code` AS lastUpdateCode,
+            a.`last_update_date` AS lastUpdateDate,
+            a.`proj_id` AS projId,
+            b.`user_code` AS userCode,
+            b.`user_name` AS userName,
+            b.`unit_id` AS unitId,
+            c.`unit_name` AS unitName,
+            b.`email_address` AS emailAddress,
+            d.`role` AS role,
+            d.`description` AS description
+        FROM
+            user_database.`user_role` AS a
+            LEFT JOIN user_database.`user_info` AS b ON a.`user_id` = b.`user_id`
+            LEFT JOIN center_database.`unit_list` AS c ON b.`unit_id`=c.`unit_id`
+            LEFT JOIN user_database.`role` AS d ON a.`role_id`=d.`roleid`
+        WHERE
+            a.`proj_id` = 5
+            AND a.`status` = 1
+        ORDER BY
+            a.`create_date` DESC
+    </select>
+
+    <!--菁干班系统新增用户——搜索用户-->
+    <select id="fuzzySearchByUserNameAndUserCode" resultType="com.tsbg.mis.jurisdiction.vo.UserInfoVo"
+            parameterType="com.tsbg.mis.jurisdiction.bag.Key">
+        SELECT
+        a.`user_id` AS userId,
+        a.`user_code` AS userCode,
+        a.`user_name` AS userName,
+        a.`phone_number` AS phoneNumber,
+        a.`email_address` AS emailAddress,
+        a.`create_time` AS createTime
+        FROM
+        user_database.`user_info` AS a
+        <where>
+            <if test="userName != null">
+                `user_name` like concat('%',#{userName},'%')
+            </if>
+            <if test="userCode != null">
+                AND `user_code` like concat('%',#{userCode},'%')
+            </if>
+        </where>
+        ORDER BY
+        a.`create_time` DESC
+    </select>
+
+    <!--搜索菁干班系统的用户-->
+    <select id="fuzzySearchUserRoleByUserNameAndUserRole"
+            resultType="com.tsbg.mis.jurisdiction.bag.RoleAndInfoPackage"
+            parameterType="com.tsbg.mis.jurisdiction.bag.Key">
+        SELECT
+            a.`user_role_id` AS uroleId,
+            a.`user_id` AS userId,
+            a.`role_id` AS roleId,
+            a.`is_lock` AS isLock,
+            a.`status` AS status,
+            a.`create_code` AS createCode,
+            a.`create_date` AS createDate,
+            a.`last_update_code` AS lastUpdateCode,
+            a.`last_update_date` AS lastUpdateDate,
+            a.`proj_id` AS projId,
+            b.`staff_code` AS staffCode,
+            b.`user_name` AS userName,
+            c.`unit_id` AS unitId,
+            c.`unit_name` AS unitName,
+            c.`factory_name` AS factoryName,
+            c.`depart_name` AS departName,
+            c.`organization_name` AS organizationName,
+            b.`email_address` AS emailAddress,
+            d.`role_name` AS roleName
+        FROM
+            user_database.`user_role` AS a
+            LEFT JOIN user_database.`user_info` AS b ON a.`user_id` = b.`user_id`
+            LEFT JOIN master_database.`staff_info` AS c ON b.`staff_code` = c.`staff_code`
+            LEFT JOIN user_database.`role` AS d ON a.`role_id` = d.`role_id`
+        WHERE
+            a.`proj_id` = 10
+            AND a.`status` = 1
+            AND (b.`proj_id` != 6 OR b.`proj_id` is NULL)
+            <if test="userName != null and userName != ''">
+                AND b.`user_name` like concat('%',#{userName},'%')
+            </if>
+            <if test="staffCode != null and staffCode != ''">
+                AND b.`staff_code` like concat('%',#{staffCode},'%')
+            </if>
+            <if test="factoryName != null and userName != ''">
+                AND c.`factory_name` like concat('%',#{factoryName},'%')
+            </if>
+            <if test="unitName != null and userName != ''">
+                AND c.`unit_name` like concat('%',#{unitName},'%')
+            </if>
+            <if test="departName != null and userName != ''">
+                AND c.`depart_name` like concat('%',#{departName},'%')
+            </if>
+            <if test="organizationName != null and userName != ''">
+                AND c.`organization_name` like concat('%',#{organizationName},'%')
+            </if>
+            <if test="factoryName != null and factoryName != ''">
+                AND c.`factory_name` like concat('%',#{factoryName},'%')
+            </if>
+            <if test="unitName != null and unitName != ''">
+                AND c.`unit_name` like concat('%',#{unitName},'%')
+            </if>
+            <if test="departName != null and departName != ''">
+                AND c.`depart_name` like concat('%',#{departName},'%')
+            </if>
+            <if test="organizationName != null and organizationName != ''">
+                AND c.`organization_name` like concat('%',#{organizationName},'%')
+            </if>
+            <if test="roleId != null">
+                AND a.`role_id` = #{roleId}
+            </if>
+            ORDER BY
+            a.`create_date` DESC
+    </select>
+
+    <!--判断该用户 roleid = 17 or 21 and status = 1-->
+    <select id="inquireUserRoleByUserId" resultType="com.tsbg.mis.jurisdiction.bag.RoleAndInfoPackage"
+            parameterType="java.lang.Integer">
+        SELECT
+            a.`user_role_id` AS uroleId,
+            a.`user_id` AS userId,
+            a.`role_id` AS roleId,
+            a.`is_lock` AS isLock,
+            a.`status` AS status,
+            a.`create_code` AS creatCode,
+            a.`create_date` AS craeteDate,
+            a.`last_update_code` AS lastUpdateCode,
+            a.`last_update_date` AS lastUpdateDate,
+            a.`proj_id` AS projId
+        FROM
+            user_database.`user_role` AS a
+        WHERE
+            a.`proj_id` = 10
+            AND a.`user_id` = #{userId,jdbcType=INTEGER}
+            AND a.`role_id` IN (17, 21, 22)
+            AND a.`status` = 1
+            AND a.`is_lock` = 1
+        ORDER BY
+            a.`create_date` DESC
+    </select>
+
+    <!--查询该用户在 manage_node 表中的状态-->
+    <select id="inquireManagerNodeByUserCode" resultType="com.tsbg.mis.signed.model.ManagerNode"
+            parameterType="java.lang.String">
+        SELECT
+            a.`mana_node_id` AS manaNodeId,
+            a.`sign_node_id` AS signNodeId,
+            a.`node_name` AS nodename,
+            a.`manager_code` AS managerCode,
+            a.`manager_name` AS managerName,
+            a.`manager_mail_address` AS managerMailAddress,
+            a.`proj_id` AS projId,
+            a.`business_id` AS businessId,
+            a.`status` AS STATUS
+        FROM
+            signed_module_db.`manager_node` AS a
+        WHERE
+            a.`business_id` = 1
+            AND a.`sign_node_id` = 1
+            AND a.`manager_code` = #{userCode,jdbcType=VARCHAR}
+    </select>
+
+    <!--查出该用户的详细信息-->
+    <select id="selectUserByUserId" resultType="com.tsbg.mis.jurisdiction.bag.RoleAndInfoPackage"
+            parameterType="java.lang.Integer">
+        SELECT
+            a.`user_role_id` AS uroleId,
+            a.`user_id` AS userId,
+            a.`role_id` AS roleId,
+            a.`is_lock` AS isLock,
+            a.`status` AS status,
+            a.`create_code` AS createCode,
+            a.`create_date` AS createDate,
+            a.`last_update_code` AS lastUpdateCode,
+            a.`last_update_date` AS lastUpdateDate,
+            a.`proj_id` AS projId,
+            b.`user_code` AS userCode,
+            b.`user_name` AS userName,
+            b.`unit_id` AS unitId,
+            c.`unit_name` AS unitName,
+            b.`email_address` AS emailAddress,
+            d.`role` AS role,
+            d.`description` AS description
+        FROM
+            user_database.`user_role` AS a
+            LEFT JOIN user_database.`user_info` AS b ON a.`user_id` = b.`user_id`
+            LEFT JOIN center_database.`unit_list` AS c ON b.`unit_id`=c.`unit_id`
+            LEFT JOIN user_database.`role` AS d ON a.`role_id`=d.`roleid`
+        WHERE
+            a.`proj_id` = 5
+            AND b.`user_id` = #{userId,jdbcType=INTEGER}
+        ORDER BY
+            a.`create_date` DESC
+    </select>
+
+    <!--菁干班系统新增用户-->
+    <insert id="insertDateToUserRole">
+        INSERT INTO user_database.`user_role` (
+            user_id,
+            role_id,
+            status,
+            create_code,
+            create_date,
+            last_update_date,
+            proj_id
+        )
+        VALUES
+            (#{userId,jdbcType=INTEGER},15,1 ,#{createCode,jdbcType=VARCHAR}, #{createDate,jdbcType=TIMESTAMP} ,#{lastUpdateDate,jdbcType=TIMESTAMP} , 5 )
+    </insert>
+
+    <!--批量新增角色-->
+    <insert id="batchAdd" parameterType="java.util.List">
+        INSERT INTO user_database.`user_role` (
+        user_id,
+        role_id,
+        status,
+        create_code,
+        create_date,
+        last_update_date,
+        proj_id
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.userId},#{item.roleId},1 ,#{item.createCode},#{item.createDate},#{item.lastUpdateDate}, 10)
+        </foreach>
+    </insert>
+
+    <!--新增 manager_node-->
+    <insert id="insertManagerNode">
+        INSERT INTO signed_module_db.`manager_node` (
+            sign_node_id,
+            business_id,
+            node_name,
+            manager_code,
+            manager_name,
+            manager_mail_address,
+            proj_id,
+            status
+        )
+        VALUES
+            (1, 1, "活動公告發佈審核", #{managerCode,jdbcType=VARCHAR} ,#{managerName,jdbcType=VARCHAR}, #{managerMailAddress,jdbcType=VARCHAR}, 5 , 1)
+    </insert>
+
+    <!--批量删除角色-->
+    <update id="batchDeletion" parameterType="java.util.List">
+        UPDATE user_database.`user_role` AS a
+        SET a.`status` = 0
+        WHERE
+        a.`user_role_id` IN
+        <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+    <!--启用用户-->
+    <update id="updateUserAllRole">
+        UPDATE user_database.`user_role` AS a
+        SET a.`is_lock` = 1
+        WHERE
+            a.`user_id` = #{userId}
+            AND a.`proj_id` = 10
+    </update>
+
+    <!--停用用户-->
+    <update id="updateUserAllRoleDisable">
+        UPDATE user_database.`user_role` AS a
+        SET a.`is_lock` = 0
+        WHERE
+            a.`user_id` = #{userId}
+            AND a.`proj_id` = 10
+    </update>
+
+    <!--批量修改用户角色-->
+    <update id="batchUpdate" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            UPDATE user_database.`user_role` AS a
+            <set>
+                a.`last_update_date` = #{item.lastUpdateDate}, a.`status` = 1, a.`last_update_code` =
+                #{item.lastUpdateCode}
+            </set>
+            WHERE a.`role_id` = #{item.roleId} AND a.`user_id` = #{item.userId} AND a.`status` = 0
+        </foreach>
+    </update>
+
+    <!--设置 status = 1-->
+    <update id="updateManagerNode" parameterType="java.lang.String">
+        UPDATE signed_module_db.`manager_node` AS a
+        SET a.`status` = 1
+        WHERE
+            a.`sign_node_id` = 1
+            AND a.`business_id` = 1
+            AND a.`manager_code` = #{managerCode,jdbcType=VARCHAR}
+    </update>
+
+    <!--设置 status = 0-->
+    <update id="updateManagerNodeStatus" parameterType="java.lang.String">
+        UPDATE signed_module_db.`manager_node` AS a
+        SET a.`status` = 0
+        WHERE
+            a.`sign_node_id` = 1
+            AND a.`business_id` = 1
+            AND a.`manager_code` = #{managerCode,jdbcType=VARCHAR}
+    </update>
+
+</mapper>

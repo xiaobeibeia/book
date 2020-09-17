@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tsbg.mis.dao.rookie.ReportProductionListDao">
+
+    <resultMap type="com.tsbg.mis.rookie.model.ReportProductionList" id="ReportProductionListMap">
+        <result property="reportId" column="report_id" jdbcType="INTEGER"/>
+        <result property="creationId" column="creation_id" jdbcType="INTEGER"/>
+        <result property="staffCode" column="staff_code" jdbcType="VARCHAR"/>
+        <result property="missionType" column="mission_type" jdbcType="INTEGER"/>
+        <result property="reportType" column="report_type" jdbcType="INTEGER"/>
+        <result property="isHaveProblem" column="is_have_problem" jdbcType="INTEGER"/>
+        <result property="reportDate" column="report_date" jdbcType="TIMESTAMP"/>
+        <result property="lineId" column="line_id" jdbcType="INTEGER"/>
+        <result property="internshipState" column="internship_state" jdbcType="VARCHAR"/>
+        <result property="stageRemark" column="stage_remark" jdbcType="VARCHAR"/>
+        <result property="internshipContent" column="internship_content" jdbcType="VARCHAR"/>
+        <result property="questionDescription" column="question_description" jdbcType="VARCHAR"/>
+        <result property="internshipHarvest" column="internship_harvest" jdbcType="VARCHAR"/>
+        <result property="questionSuggestion" column="question_suggestion" jdbcType="VARCHAR"/>
+        <result property="improveCategory" column="improve_category" jdbcType="VARCHAR"/>
+        <result property="improveRemark" column="improve_remark" jdbcType="VARCHAR"/>
+        <result property="fileId" column="file_id" jdbcType="INTEGER"/>
+        <result property="stateId" column="state_id" jdbcType="INTEGER"/>
+        <result property="mentalState" column="mental_state" jdbcType="VARCHAR"/>
+        <result property="mentalRemark" column="mental_remark" jdbcType="VARCHAR"/>
+        <result property="attendance" column="attendance" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+        <result property="updateDate" column="update_date" jdbcType="TIMESTAMP"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="ReportProductionListMap">
+        select
+          report_id, creation_id, staff_code, mission_type, report_type, is_have_problem, report_date, line_id, internship_state, stage_remark, internship_content, knowledge_summary, question_description, internship_harvest, question_suggestion, improve_category, improve_remark, file_id, state_id, mental_state, mental_remark, attendance, create_date, update_date, status
+        from rookie_training_system.report_production_list
+        where report_id = #{reportId}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="ReportProductionListMap">
+        select
+          report_id, creation_id, staff_code, mission_type, report_type, is_have_problem, report_date, line_id, internship_state, stage_remark, internship_content, knowledge_summary, question_description, internship_harvest, question_suggestion, improve_category, improve_remark, file_id, state_id, mental_state, mental_remark, attendance, create_date, update_date, status
+        from rookie_training_system.report_production_list
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="ReportProductionListMap">
+        select
+        report_id, creation_id, staff_code, mission_type, report_type, is_have_problem, report_date, line_id,
+        internship_state, stage_remark, internship_content, knowledge_summary, question_description, internship_harvest,
+        question_suggestion, improve_category, improve_remark, file_id, state_id, mental_state, mental_remark,
+        attendance, create_date, update_date, status
+        from rookie_training_system.report_production_list
+        <where>
+            <if test="reportId != null">
+                and report_id = #{reportId}
+            </if>
+            <if test="creationId != null">
+                and creation_id = #{creationId}
+            </if>
+            <if test="staffCode != null and staffCode != ''">
+                and staff_code = #{staffCode}
+            </if>
+            <if test="missionType != null">
+                and mission_type = #{missionType}
+            </if>
+            <if test="reportType != null">
+                and report_type = #{reportType}
+            </if>
+            <if test="isHaveProblem != null">
+                and is_have_problem = #{isHaveProblem}
+            </if>
+            <if test="reportDate != null">
+                and report_date = #{reportDate}
+            </if>
+            <if test="lineId != null">
+                and line_id = #{lineId}
+            </if>
+            <if test="internshipState != null and internshipState != ''">
+                and internship_state = #{internshipState}
+            </if>
+            <if test="stageRemark != null and stageRemark != ''">
+                and stage_remark = #{stageRemark}
+            </if>
+            <if test="internshipContent != null and internshipContent != ''">
+                and internship_content = #{internshipContent}
+            </if>
+            <if test="questionDescription != null and questionDescription != ''">
+                and question_description = #{questionDescription}
+            </if>
+            <if test="internshipHarvest != null and internshipHarvest != ''">
+                and internship_harvest = #{internshipHarvest}
+            </if>
+            <if test="questionSuggestion != null and questionSuggestion != ''">
+                and question_suggestion = #{questionSuggestion}
+            </if>
+            <if test="improveCategory != null and improveCategory != ''">
+                and improve_category = #{improveCategory}
+            </if>
+            <if test="improveRemark != null and improveRemark != ''">
+                and improve_remark = #{improveRemark}
+            </if>
+            <if test="fileId != null">
+                and file_id = #{fileId}
+            </if>
+            <if test="stateId != null">
+                and state_id = #{stateId}
+            </if>
+            <if test="mentalState != null and mentalState != ''">
+                and mental_state = #{mentalState}
+            </if>
+            <if test="mentalRemark != null and mentalRemark != ''">
+                and mental_remark = #{mentalRemark}
+            </if>
+            <if test="attendance != null and attendance != ''">
+                and attendance = #{attendance}
+            </if>
+            <if test="createDate != null">
+                and create_date = #{createDate}
+            </if>
+            <if test="updateDate != null">
+                and update_date = #{updateDate}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!--根据工号查询该用户对应的产线所有领导-->
+    <select id="inquireWithStaffCode" resultType="com.tsbg.mis.rookie.model.ProductionLineList">
+        SELECT
+            a.`line_name` AS lineName,
+            a.`line_leader_code` AS lineLeaderCode,
+            a.`line_leader_name` AS lineLeaderName,
+            a.`line_leader_email` AS lineLeaderEmail,
+            a.`line_group_leader_code` AS lineGroupLeaderCode,
+            a.`line_group_leader_name` AS lineGroupLeaderName,
+            a.`line_group_leader_email` AS lineGroupLeaderEmail,
+            a.`line_manager_code` AS lineManagerCode,
+            a.`line_manager_name` AS lineManagerName,
+            a.`line_manager_email` AS lineManagerEmail
+        FROM
+            rookie_training_system.`production_line_list` AS a
+        WHERE
+            a.`line_id` = #{lineId}
+    </select>
+
+    <!--根据工号查询该用户对应的产线所有领导-->
+    <select id="inquireByStaffCode" resultType="com.tsbg.mis.rookie.model.ProductionLineList">
+        SELECT
+            a.`line_name` AS lineName,
+            a.`line_leader_code` AS lineLeaderCode,
+            a.`line_leader_name` AS lineLeaderName,
+            a.`line_leader_email` AS lineLeaderEmail,
+            a.`line_group_leader_code` AS lineGroupLeaderCode,
+            a.`line_group_leader_name` AS lineGroupLeaderName,
+            a.`line_group_leader_email` AS lineGroupLeaderEmail,
+            a.`line_manager_code` AS lineManagerCode,
+            a.`line_manager_name` AS lineManagerName,
+            a.`line_manager_email` AS lineManagerEmail
+        FROM
+            rookie_training_system.`production_line_list` AS a
+            LEFT JOIN rookie_training_system.`production_line_student_list` AS b ON b.`line_id` = a.`line_id`
+            LEFT JOIN rookie_training_system.`class_student_info` AS c ON b.`student_id` = c.`student_id`
+        WHERE
+            a.`status` = 1
+            AND b.`status` = 1
+            AND c.`status` = 1
+            AND c.`staff_code` = #{submitStaffCode}
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="reportId" useGeneratedKeys="true">
+        insert into rookie_training_system.report_production_list(creation_id, staff_code, mission_type, report_type, is_have_problem, report_date, line_id, internship_state, stage_remark, internship_content, question_description, internship_harvest, question_suggestion, improve_category, improve_remark, file_id, state_id, mental_state, mental_remark, attendance, create_date, update_date, status)
+        values (#{creationId}, #{staffCode}, #{missionType}, #{reportType}, #{isHaveProblem}, #{reportDate}, #{lineId}, #{internshipState}, #{stageRemark}, #{internshipContent}, #{questionDescription}, #{internshipHarvest}, #{questionSuggestion}, #{improveCategory}, #{improveRemark}, #{fileId}, #{stateId}, #{mentalState}, #{mentalRemark}, #{attendance}, #{createDate}, #{updateDate}, #{status})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update rookie_training_system.report_production_list
+        <set>
+            <if test="creationId != null">
+                creation_id = #{creationId},
+            </if>
+            <if test="staffCode != null and staffCode != ''">
+                staff_code = #{staffCode},
+            </if>
+            <if test="missionType != null">
+                mission_type = #{missionType},
+            </if>
+            <if test="reportType != null">
+                report_type = #{reportType},
+            </if>
+            <if test="isHaveProblem != null">
+                is_have_problem = #{isHaveProblem},
+            </if>
+            <if test="reportDate != null">
+                report_date = #{reportDate},
+            </if>
+            <if test="lineId != null">
+                line_id = #{lineId},
+            </if>
+            <if test="internshipState != null and internshipState != ''">
+                internship_state = #{internshipState},
+            </if>
+            <if test="stageRemark != null and stageRemark != ''">
+                stage_remark = #{stageRemark},
+            </if>
+            <if test="internshipContent != null and internshipContent != ''">
+                internship_content = #{internshipContent},
+            </if>
+            <if test="questionDescription != null and questionDescription != ''">
+                question_description = #{questionDescription},
+            </if>
+            <if test="internshipHarvest != null and internshipHarvest != ''">
+                internship_harvest = #{internshipHarvest},
+            </if>
+            <if test="questionSuggestion != null and questionSuggestion != ''">
+                question_suggestion = #{questionSuggestion},
+            </if>
+            <if test="improveCategory != null and improveCategory != ''">
+                improve_category = #{improveCategory},
+            </if>
+            <if test="improveRemark != null and improveRemark != ''">
+                improve_remark = #{improveRemark},
+            </if>
+            <if test="fileId != null">
+                file_id = #{fileId},
+            </if>
+            <if test="stateId != null">
+                state_id = #{stateId},
+            </if>
+            <if test="mentalState != null and mentalState != ''">
+                mental_state = #{mentalState},
+            </if>
+            <if test="mentalRemark != null and mentalRemark != ''">
+                mental_remark = #{mentalRemark},
+            </if>
+            <if test="attendance != null and attendance != ''">
+                attendance = #{attendance},
+            </if>
+            <if test="createDate != null">
+                create_date = #{createDate},
+            </if>
+            <if test="updateDate != null">
+                update_date = #{updateDate},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+        </set>
+        where report_id = #{reportId}
+    </update>
+
+    <!--修改提案改善报告-->
+    <update id="updateProposal">
+        update rookie_training_system.`report_production_proposal_list`
+        set
+            state_id = 3
+        where
+            proposal_id = #{proposalId}
+    </update>
+
+    <!--修改产线报告状态 -> 通过-->
+    <update id="updateReport">
+        update
+        ${investTableName}
+        set
+            state_id = 4
+        where ${investFieldName} = #{investFieldValue}
+    </update>
+
+    <!--修改产线报告状态 -> 被驳回-->
+    <update id="updateReportUnPass">
+        update
+        ${investTableName}
+        set
+            state_id = 5
+        where ${investFieldName} = #{investFieldValue}
+    </update>
+
+    <!--修改月目标状态 -> 通过-->
+    <update id="updateTarget">
+        update
+        ${investTableName}
+        set
+            examine_state = 1
+        where ${investFieldName} = #{investFieldValue}
+    </update>
+
+    <!--修改月目标状态 -> 被驳回-->
+    <update id="updateTargetUnPass">
+        update
+        ${investTableName}
+        set
+            examine_state = 3
+        where ${investFieldName} = #{investFieldValue}
+    </update>
+
+    <!--修改部门报告状态 -> 待审核-->
+    <update id="updateUnAudit">
+        update
+        ${investTableName}
+        set
+            state_id = 3
+        where ${investFieldName} = #{investFieldValue}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from rookie_training_system.report_production_list where report_id = #{reportId}
+    </delete>
+
+
+</mapper>

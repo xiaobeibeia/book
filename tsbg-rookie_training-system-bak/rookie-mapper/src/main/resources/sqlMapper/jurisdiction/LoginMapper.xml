@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tsbg.mis.dao.jurisdiction.LoginDao">
+
+    <select id="getMyUser" resultType="com.alibaba.fastjson.JSONObject">
+        SELECT
+            u.`user_id`   userId,
+            u.`account_name` accountName,
+            u.`user_pwd`  userPwd,
+            u.`user_name` userName
+        FROM
+            user_info u
+        WHERE u.`account_name` = #{accountName}
+          AND u.`user_pwd` = #{userPwd}
+          AND u.`status` = 1
+    </select>
+</mapper>

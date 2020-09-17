@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!-- 基本信息 -->
+    <description>SpringBoot 多模块</description>
+    <modelVersion>4.0.0</modelVersion>
+    <name>tsbg-rookie-system</name>
+    <packaging>pom</packaging>
+
+    <!-- 项目说明：这里作为聚合工程的父工程 -->
+    <groupId>com.tsbg</groupId>
+    <artifactId>tsbg-rookie-system</artifactId>
+    <version>1.0.0.RELEASE</version>
+
+    <!-- 继承说明：这里继承SpringBoot提供的父工程 -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.1.1.RELEASE</version>
+        <relativePath/>
+    </parent>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+        <jackson.version>2.9.8</jackson.version>
+        <springfox.swagger.ui>2.9.2</springfox.swagger.ui>
+        <springfox.swagger2.version>2.9.2</springfox.swagger2.version>
+        <mysql-connector-java.version>5.1.40</mysql-connector-java.version>
+    </properties>
+
+    <!-- 模块说明：这里声明多个子模块 -->
+    <modules>
+        <module>rookie-web</module>
+        <module>rookie-service</module>
+        <module>rookie-mapper</module>
+        <module>rookie-entity</module>
+        <module>rookie-api</module>
+    </modules>
+
+    <!-- 版本说明：这里统一管理依赖的版本号 -->
+    <dependencyManagement>
+        <dependencies>
+
+            <dependency>
+                <groupId>com.tsbg</groupId>
+                <artifactId>rookie-web</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.tsbg</groupId>
+                <artifactId>rookie-service</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.tsbg</groupId>
+                <artifactId>rookie-mapper</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.tsbg</groupId>
+                <artifactId>rookie-entity</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.tsbg</groupId>
+                <artifactId>rookie-api</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>5.1.42</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.pagehelper</groupId>
+                <artifactId>pagehelper-spring-boot-starter</artifactId>
+                <version>1.2.5</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>
